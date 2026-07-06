@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @SuperBuilder
 @MappedSuperclass
-@EntityListeners(GlobalEntity.GlobalEntityBuilder.class)
+@EntityListeners(GlobalEntityListener.class)
 public class GlobalEntity {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updatted_at", nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }
