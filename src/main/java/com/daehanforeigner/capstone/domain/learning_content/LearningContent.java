@@ -16,7 +16,7 @@ public class LearningContent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "content_id")
-    private int contentId;
+    private Long contentId;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

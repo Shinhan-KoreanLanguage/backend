@@ -17,7 +17,7 @@ public class SocialAccount extends GlobalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "social_id")
-    private int socialId;
+    private Long socialId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

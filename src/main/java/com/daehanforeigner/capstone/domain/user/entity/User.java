@@ -16,7 +16,7 @@ public class User extends GlobalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id") // PK 유저 ID
-    private int userId;
+    private Long userId;
 
     @Column(name = "email") // 이메일
     private String email;
@@ -40,7 +40,7 @@ public class User extends GlobalEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status") // 상태 (ACTIVE, WITHDRAWN)
-    private String status;
+    private Status status;
 
     @Column(name = "refresh_token") // 리프레시 토큰
     private String refreshToken;

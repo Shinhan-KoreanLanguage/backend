@@ -16,7 +16,7 @@ public class ContentCategory extends GlobalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
-    private int categoryId;
+    private Long categoryId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
