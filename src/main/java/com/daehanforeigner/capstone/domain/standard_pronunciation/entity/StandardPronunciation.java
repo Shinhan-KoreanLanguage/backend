@@ -1,0 +1,35 @@
+package com.daehanforeigner.capstone.domain.standard_pronunciation.entity;
+
+import com.daehanforeigner.capstone.domain.learning_content.LearningContent;
+import com.daehanforeigner.capstone.global.entity.GlobalEntity;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
+
+@Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "standard_pronunciation")
+public class StandardPronunciation extends GlobalEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pronunciation_id")
+    private Long pronunciationId;
+
+    @ManyToOne
+    @JoinColumn(name = "content_id")
+    private LearningContent learningContent;
+
+    @Column(name = "native_pitch_data", columnDefinition = "json") // 피치 데이터
+    private String nativePitchData;
+
+    @Column(name = "lip_sequence", columnDefinition = "json") // 입술 움직임 시퀀스
+    private String lipSequence;
+
+    @Column(name = "answer_audio_url") // 정답 오디오 URL
+    private String answerAudioUrl;
+}
