@@ -1,6 +1,6 @@
-package com.daehanforeigner.capstone.feedback.entity;
+package com.daehanforeigner.capstone.domain.feedback.entity;
 
-import com.daehanforeigner.capstone.domain.pronunciation_attempt.PromunciationAttempt;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.PronunciationAttempt;
 import com.daehanforeigner.capstone.domain.user.entity.NativeLangauge;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
@@ -13,20 +13,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "feedback")
-public class FeedBack extends GlobalEntity {
+public class Feedback extends GlobalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "feedback_id")
-    private int feedbackId;
+    private Long feedbackId;
 
     @ManyToOne
     @JoinColumn(name = "attempt_id")
-    private PromunciationAttempt attempt;
+    private PronunciationAttempt attempt;
 
     @Column(name = "content") // 피드백 내용
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "language") // 피드백 언어
     private NativeLangauge language;
 }
