@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "social_account")
-public class Social_account extends GlobalEntity {
+public class SocialAccount extends GlobalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "social_id")
-    private int social_id;
+    private int socialId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
