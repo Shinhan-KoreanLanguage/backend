@@ -1,3 +1,45 @@
 spring:
-  application:
-    name: capstone
+  profiles:
+    active: local
+
+  # 소셜 로그인 (구글, 페이스북 로그인) 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            scope:
+              - email
+              - public_profile
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+custom:
+  # JWT 설정
+  jwt:
+    secret-key: ${JWT_SECRET}
+    access-exp-min: ${JWT_ACCESS_EXP_MIN:60} # 토큰 유효시간 : 60분
+    refresh-exp-day: ${JWT_REFRESH_EXP_DAY:30} # RT 유효시간 : 30일
+
+# Swagger 설정
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha # API 그룹 알파벳 순으로 정렬
+    operations-sorter: alpha # 각 그룹 안의 API를 알파벳 순으로 정렬
+  api-docs:
+    default-consumes-media-type: application/json # 요청 기본 타입을 JSON으로 설정
+    default-produces-media-type: application/json # 응답 기본 타입을 JSON으로 설정
