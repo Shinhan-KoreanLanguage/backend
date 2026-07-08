@@ -27,7 +27,7 @@ public class LearningContent {
     private ContentType contentType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "difficulty") // 쉬움, 보통, 난이도
+    @Column(name = "difficulty") // 초급, 중급, 고급
     private Difficulty difficulty;
 
     @Column(name = "text") // 학습 텍스트

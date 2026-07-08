@@ -1,6 +1,7 @@
 package com.daehanforeigner.capstone.domain.ranking.entity;
 
 import com.daehanforeigner.capstone.domain.user.entity.User;
+import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "ranking")
-public class Ranking {
+public class Ranking extends GlobalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

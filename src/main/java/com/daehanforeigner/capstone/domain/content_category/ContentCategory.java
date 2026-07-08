@@ -20,7 +20,7 @@ public class ContentCategory extends GlobalEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    private Type type;
+    private CategoryType type;
 
     @Column(name = "name") // 카테고리 이름 ex) 학습, 드라마 대사, K문화, 신조어 등
     private String name;

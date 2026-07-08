@@ -2,6 +2,7 @@ package com.daehanforeigner.capstone.domain.wrong_answer.entity;
 
 import com.daehanforeigner.capstone.domain.learning_content.LearningContent;
 import com.daehanforeigner.capstone.domain.user.entity.User;
+import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "wrong_answer")
-public class WrongAnswer {
+public class WrongAnswer extends GlobalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
