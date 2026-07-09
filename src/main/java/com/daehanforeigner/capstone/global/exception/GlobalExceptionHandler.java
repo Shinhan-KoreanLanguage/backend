@@ -37,4 +37,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
                 .body(RsData.fail(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+    }
 }
