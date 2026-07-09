@@ -1,5 +1,7 @@
 package com.daehanforeigner.capstone.global.rsdata;
 
+import com.daehanforeigner.capstone.global.exception.ErrorCode;
+
 import java.time.LocalDateTime;
 
 public record RsData<T>(
