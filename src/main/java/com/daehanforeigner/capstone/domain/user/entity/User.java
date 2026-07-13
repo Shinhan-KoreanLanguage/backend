@@ -29,7 +29,7 @@ public class User extends GlobalEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "native_language") // 모국어
-    private NativeLangauge nativeLanguage;
+    private NativeLanguage nativeLanguage;
 
     @Column(name = "profile_image_url") // 프로필 이미지 URL
     private String profileImageUrl;
