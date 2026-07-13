@@ -44,4 +44,8 @@ public class User extends GlobalEntity {
 
     @Column(name = "refresh_token") // 리프레시 토큰
     private String refreshToken;
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }
