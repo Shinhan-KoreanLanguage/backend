@@ -9,11 +9,14 @@ import com.daehanforeigner.capstone.domain.user.dto.register.SignupRequestDTO;
 import com.daehanforeigner.capstone.domain.user.service.UserService;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import com.daehanforeigner.capstone.global.oauth.client.OAuthClientFactory;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +30,7 @@ public class UserController {
 
     private final UserService userService;
     private final SocialAuthService socialAuthService;
+    private final OAuthClientFactory oAuthClientFactory;
 
     @PostMapping("/signup")
     public ResponseEntity<RsData<String>> signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO) {
@@ -38,6 +42,17 @@ public class UserController {
     public ResponseEntity<RsData<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         LoginResponseDTO loginResponseDTO = userService.login(loginRequestDTO);
         return ResponseEntity.status(HttpStatus.OK).body(RsData.success(loginResponseDTO));
+    }
+
+    // 소셜 로그인 시작점 — 브라우저(또는 프론트)가 이 주소로 접속하면
+    // 해당 소셜 로그인 페이지로 바로 리다이렉트됨.
+    // 프론트가 client_id를 알 필요가 없어지는 효과도 있음
+    @GetMapping("/social/{provider}/login-url")
+    public ResponseEntity<Void> socialLoginUrl(@PathVariable String provider) {
+        String loginUrl = oAuthClientFactory.getClient(parseProvider(provider)).generateLoginUrl();
+        return ResponseEntity.status(HttpStatus.FOUND)          // 302 리다이렉트
+                .header(HttpHeaders.LOCATION, loginUrl)
+                .build();
     }
 
     // 소셜 로그인 — /social/google, /social/facebook 두 경로를 이 메서드 하나로 처리

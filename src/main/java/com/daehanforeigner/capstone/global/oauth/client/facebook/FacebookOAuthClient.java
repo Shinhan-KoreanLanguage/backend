@@ -15,6 +15,7 @@ import java.util.Map;
 public class FacebookOAuthClient extends AbstractOAuthClient {
 
     // Graph API는 URL에 버전 포함 — 페이스북 앱 대시보드의 버전과 맞출 것
+    private static final String AUTHORIZE_URI = "https://www.facebook.com/v19.0/dialog/oauth";
     private static final String TOKEN_URI = "https://graph.facebook.com/v19.0/oauth/access_token";
     // fields로 받을 항목을 명시해야 함 (안 쓰면 id, name만 옴)
     private static final String USER_INFO_URI = "https://graph.facebook.com/v19.0/me?fields=id,name,email";
@@ -24,6 +25,18 @@ public class FacebookOAuthClient extends AbstractOAuthClient {
     @Override
     public Provider getProvider() {
         return Provider.FACEBOOK;
+    }
+
+    @Override
+    public String generateLoginUrl() {
+        OAuthProperties.Registration registration = properties.getRegistration(Provider.FACEBOOK);
+        // 페이스북 로그인 페이지 URL 조립
+        return UriComponentsBuilder.fromUriString(AUTHORIZE_URI)
+                .queryParam("client_id", registration.clientId())
+                .queryParam("redirect_uri", registration.redirectUri())
+                .queryParam("response_type", "code")
+                .queryParam("scope", "email,public_profile") // 페이스북은 쉼표 구분
+                .toUriString();
     }
 
     @Override

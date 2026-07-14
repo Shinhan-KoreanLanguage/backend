@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 public class GoogleOAuthClient extends AbstractOAuthClient {
 
     // URL은 구글이 정한 고정값이라 설정이 아닌 상수로 관리
+    private static final String AUTHORIZE_URI = "https://accounts.google.com/o/oauth2/v2/auth";
     private static final String TOKEN_URI = "https://oauth2.googleapis.com/token";
     private static final String USER_INFO_URI = "https://www.googleapis.com/oauth2/v3/userinfo";
 
@@ -24,6 +26,18 @@ public class GoogleOAuthClient extends AbstractOAuthClient {
     @Override
     public Provider getProvider() {
         return Provider.GOOGLE; // Factory가 "GOOGLE 요청 → 이 클래스"로 매핑할 때 사용
+    }
+
+    @Override
+    public String generateLoginUrl() {
+        OAuthProperties.Registration registration = properties.getRegistration(Provider.GOOGLE);
+        // 구글 로그인 페이지 URL 조립 — 프론트(또는 테스터)는 이 URL로 이동만 하면 됨
+        return UriComponentsBuilder.fromUriString(AUTHORIZE_URI)
+                .queryParam("client_id", registration.clientId())
+                .queryParam("redirect_uri", registration.redirectUri())
+                .queryParam("response_type", "code")   // "인가 코드 방식으로 달라"는 선언
+                .queryParam("scope", "email profile")  // 요청할 정보 범위
+                .toUriString();
     }
 
     @Override

@@ -9,4 +9,6 @@ public interface OAuthClient {
     Provider getProvider(); // 어떤 소셜 플랫폼인지
 
     OAuthUserInfo getUserInfo(String code); // 인가코드 통해 사용자 정보 가져오기
+
+    String generateLoginUrl(); // 소셜 로그인 페이지로 보낼 인가 URL 생성 (테스트·프론트 공용)
 }
