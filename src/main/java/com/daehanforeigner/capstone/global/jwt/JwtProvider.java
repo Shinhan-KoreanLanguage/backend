@@ -25,8 +25,8 @@ public class JwtProvider {
 
     public JwtProvider(
             @Value("${custom.jwt.secret-key}") String secretKey,
-            @Value("${custom.jwt.access-token-exp-min}") long accessTokenExpMin,
-            @Value("${custom.jwt.refresh-token-exp-day}") long refreshTokenExpDay
+            @Value("${custom.jwt.access-exp-min}") long accessTokenExpMin,
+            @Value("${custom.jwt.refresh-exp-day}") long refreshTokenExpDay
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.accessTokenExpMin = accessTokenExpMin * 60 * 1000;
