@@ -48,7 +48,7 @@ public class UserController {
     // 해당 소셜 로그인 페이지로 바로 리다이렉트됨.
     // 프론트가 client_id를 알 필요가 없어지는 효과도 있음
     @GetMapping("/social/{provider}/login-url")
-    public ResponseEntity<Void> socialLoginUrl(@PathVariable String provider) {
+    public ResponseEntity<Void> socialLoginUrl(@PathVariable("provider") String provider) { // 이름 명시: -parameters 플래그 없이도 매핑되게
         String loginUrl = oAuthClientFactory.getClient(parseProvider(provider)).generateLoginUrl();
         return ResponseEntity.status(HttpStatus.FOUND)          // 302 리다이렉트
                 .header(HttpHeaders.LOCATION, loginUrl)
@@ -58,7 +58,7 @@ public class UserController {
     // 소셜 로그인 — /social/google, /social/facebook 두 경로를 이 메서드 하나로 처리
     @PostMapping("/social/{provider}")
     public ResponseEntity<RsData<LoginResponseDTO>> socialLogin(
-            @PathVariable String provider,
+            @PathVariable("provider") String provider,
             @Valid @RequestBody SocialLoginDTO socialLoginDTO) {
         LoginResponseDTO loginResponseDTO = socialAuthService.socialLogin(parseProvider(provider), socialLoginDTO);
         return ResponseEntity.status(HttpStatus.OK).body(RsData.success(loginResponseDTO));

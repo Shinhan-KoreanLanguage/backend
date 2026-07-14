@@ -38,7 +38,7 @@ public class SocialAuthService {
 
         // [1] 담당 클라이언트가 소셜 서버와 2단계 통신(토큰 교환 + 정보 조회)까지 완료
         OAuthUserInfo userInfo = oAuthClientFactory.getClient(provider)
-                .getUserInfo(socialLoginDTO.code());
+                .getUserInfo(normalizeCode(socialLoginDTO.code()));
 
         // [2] 이 소셜 계정으로 가입된 회원 조회.
         // 식별 키는 (provider, providerUserId) 조합뿐 — 이메일로 찾지 않음
@@ -81,6 +81,14 @@ public class SocialAuthService {
                 .build());
 
         return user;
+    }
+
+    // 인가 코드 정리 — 페이스북이 리다이렉트 URL 끝에 붙이는 #_=_ 장식이
+    // code에 딸려 들어오는 실수(사람/프론트 모두 흔함)를 방어.
+    // 정상 인가 코드에는 #이 절대 없으므로 # 이후는 잘라도 안전
+    private String normalizeCode(String rawCode) {
+        int fragmentIndex = rawCode.indexOf('#');
+        return fragmentIndex == -1 ? rawCode : rawCode.substring(0, fragmentIndex);
     }
 
     // 외부 API 응답을 100% 신뢰하지 않는 방어 코드 — 이름이 비어 오면 기본 닉네임으로 대체
