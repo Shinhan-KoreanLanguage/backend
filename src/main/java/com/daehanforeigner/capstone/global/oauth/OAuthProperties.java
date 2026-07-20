@@ -3,7 +3,6 @@ package com.daehanforeigner.capstone.global.oauth;
 import com.daehanforeigner.capstone.domain.social_account.entity.Provider;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
-import jakarta.servlet.Registration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;

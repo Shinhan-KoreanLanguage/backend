@@ -33,9 +33,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class) // 그 외 모든 예외처리
     public ResponseEntity<RsData<Void>> handleException(Exception e) {
-        log.error("처리되지 않은 예외 발생: {}", e.getMessage());
+        log.error("처리되지 않은 예외 발생: {}", e);
         return ResponseEntity
                 .status(ErrorCode.INTERNAL_SERVER_ERROR.getHttpStatus())
-                .body(RsData.fail(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage()));
+                .body(RsData.fail(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
