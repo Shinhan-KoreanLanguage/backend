@@ -1,12 +1,20 @@
 package com.daehanforeigner.capstone.global.config;
 
+import com.daehanforeigner.capstone.global.jwt.JwtAuthenticationFilter;
+import com.daehanforeigner.capstone.global.jwt.JwtProvider;
+import com.daehanforeigner.capstone.global.security.CustomAccessDeniedHandler;
+import com.daehanforeigner.capstone.global.security.CustomAuthenticationEntryPoint;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -15,7 +23,15 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtProvider jwtProvider;
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -27,11 +43,17 @@ public class SecurityConfig {
                 // 세션 사용 안 함 (무상태)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 인가 규칙 (지금은 뼈대 → 우선 전체 허용, 이후 좁혀나가기)
+                // 인가 규칙
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
-
+                        .requestMatchers("/api/v1/auth/**").permitAll() // 인증 관련 API는 모두 허용
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger 관련 API는 모두 허용
+                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
+                )
+                // JWT 인증 필터 적용
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex // 인증(401), 인가(403) 실패 RsData 포맷 응답
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler));
         return http.build();
     }
 
@@ -49,5 +71,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

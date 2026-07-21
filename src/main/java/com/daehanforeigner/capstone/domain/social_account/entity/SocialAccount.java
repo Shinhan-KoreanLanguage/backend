@@ -6,12 +6,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "social_account")
+@SuperBuilder
+// UniqueConstraint 사용을 통해 같은 소셜 계정이 두 번 연동되는 것을 DB 차원에서 차단
+@Table(name = "social_account", uniqueConstraints = @UniqueConstraint(columnNames = {"provider", "provider_user_id"}))
 public class SocialAccount extends GlobalEntity {
 
     @Id
@@ -26,4 +29,8 @@ public class SocialAccount extends GlobalEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "provider")
     private Provider provider;
+
+    // 소셜 계정에서 제공하는 고유 사용자 ID
+    @Column(name = "provider_user_id", nullable = false)
+    private String providerUserId;
 }

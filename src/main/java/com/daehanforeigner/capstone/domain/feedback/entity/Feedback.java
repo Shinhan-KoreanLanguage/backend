@@ -1,7 +1,7 @@
 package com.daehanforeigner.capstone.domain.feedback.entity;
 
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.PronunciationAttempt;
-import com.daehanforeigner.capstone.domain.user.entity.NativeLangauge;
+import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,5 +29,5 @@ public class Feedback extends GlobalEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "language") // 피드백 언어
-    private NativeLangauge language;
+    private NativeLanguage language;
 }
