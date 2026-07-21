@@ -46,6 +46,7 @@ public class SecurityConfig {
                 // 인가 규칙
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll() // 인증 관련 API는 모두 허용
+                        .requestMatchers("/images/**").permitAll() // 프로필 이미지 등 정적 파일은 인증 없이 접근
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger 관련 API는 모두 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )

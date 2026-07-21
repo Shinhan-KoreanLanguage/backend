@@ -5,6 +5,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### 로컬 업로드 파일 (S3 도입 전 임시 저장소) ###
+uploads/
+
 ### STS ###
 .apt_generated
 .classpath

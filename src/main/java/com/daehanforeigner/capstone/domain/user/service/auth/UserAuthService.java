@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.user.service;
+package com.daehanforeigner.capstone.domain.user.service.auth;
 
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginResponseDTO;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService {
+public class UserAuthService {
 
     private final UserRepository userRepository;
 
@@ -84,4 +84,6 @@ public class UserService {
             throw new CustomException(ErrorCode.BAD_REQUEST);
         }
     }
+
+    //
 }

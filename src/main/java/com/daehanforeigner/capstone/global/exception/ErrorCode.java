@@ -35,7 +35,12 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCHED(HttpStatus.UNAUTHORIZED, "PASSWORD_NOT_MATCHED", "기존 비밀번호가 일치하지 않습니다."), // 비밀번호 변경 시 기존 비밀번호 확인 실패
     PASSWORD_CONFIRM_NOT_MATCHED(HttpStatus.BAD_REQUEST, "PASSWORD_CONFIRM_NOT_MATCHED", "새 비밀번호와 확인이 일치하지 않습니다."), // 새 비밀번호 != 비밀번호 확인
     INVALID_PASSWORD_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD_FORMAT", "비밀번호는 8자 이상이어야 합니다."),// 비밀번호 규칙 위반
-    NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다."); // 닉네임 중복
+    NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다."), // 닉네임 중복
+
+    // 파일(이미지) 업로드 관련 에러코드
+    EMPTY_FILE(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "업로드할 파일이 비어 있습니다."), // 파일이 없거나 빈 경우
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일(jpg, jpeg, png, gif)만 업로드할 수 있습니다."), // 허용되지 않는 확장자
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."); // 저장 중 IO 오류 등
 
     private final HttpStatus httpStatus;
     private final String code;

@@ -6,7 +6,7 @@ import com.daehanforeigner.capstone.domain.social_account.service.SocialAuthServ
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginResponseDTO;
 import com.daehanforeigner.capstone.domain.user.dto.register.SignupRequestDTO;
-import com.daehanforeigner.capstone.domain.user.service.UserService;
+import com.daehanforeigner.capstone.domain.user.service.auth.UserAuthService;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
 import com.daehanforeigner.capstone.global.oauth.client.OAuthClientFactory;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserAuthService userService;
     private final SocialAuthService socialAuthService;
     private final OAuthClientFactory oAuthClientFactory;
 
