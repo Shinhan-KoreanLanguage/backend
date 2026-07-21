@@ -18,12 +18,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/auth")
@@ -51,6 +46,13 @@ public class UserController {
     public ResponseEntity<RsData<String>> logout(@AuthenticationPrincipal Long userId) {
         userService.logout(userId);
         return ResponseEntity.ok(RsData.success("로그아웃 되었습니다."));
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/me")
+    public ResponseEntity<RsData<String>> deleteAccount(@AuthenticationPrincipal Long userId) {
+        userService.withdraw(userId);
+        return ResponseEntity.ok(RsData.success("회원 탈퇴가 완료되었습니다."));
     }
 
     // 액세스 토큰 재발급 — 만료된 액세스 토큰 상태에서 호출하므로 리프레시 토큰만 받음

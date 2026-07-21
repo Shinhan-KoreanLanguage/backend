@@ -90,6 +90,13 @@ public class UserAuthService {
         user.updateRefreshToken(null);
     }
 
+    // 회원탈퇴 (소프트 딜리트) DB값 지우지 않고 탈퇴 표시 14일 이후에는 DB 자동 삭제
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = findUser(userId);
+        user.withdraw(); // User 엔티티에서 상태를 WITHDRAWN으로 변경하고 deletedAt을 현재 시간으로 설정
+    }
+
     // 액세스 토큰 재발급
     @Transactional(readOnly = true)
     public LoginResponseDTO reissue(TokenReissueRequestDTO request) {
