@@ -1,6 +1,5 @@
 package com.daehanforeigner.capstone.global.config;
 
-import com.daehanforeigner.capstone.domain.user.entity.User;
 import com.daehanforeigner.capstone.global.jwt.JwtAuthenticationFilter;
 import com.daehanforeigner.capstone.global.jwt.JwtProvider;
 import com.daehanforeigner.capstone.global.security.CustomAccessDeniedHandler;
@@ -14,9 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -37,7 +34,7 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint, AccessDeniedHandler accessDeniedHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // CORS 활성화 (아래 corsConfigurationSource 사용)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -55,8 +52,8 @@ public class SecurityConfig {
                 // JWT 인증 필터 적용
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex // 인증(401), 인가(403) 실패 RsData 포맷 응답
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler));
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler));
         return http.build();
     }
 
