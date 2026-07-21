@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.user.controller;
+package com.daehanforeigner.capstone.domain.user.controller.profile;
 
 import com.daehanforeigner.capstone.domain.user.dto.profile.PasswordChangeRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserProfileResponseDTO;
