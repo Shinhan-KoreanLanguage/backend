@@ -1,5 +1,6 @@
 package com.daehanforeigner.capstone.domain.user.service.profile;
 
+import com.daehanforeigner.capstone.domain.user.dto.profile.PasswordChangeRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserProfileResponseDTO;
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserUpdateRequestDTO;
 import com.daehanforeigner.capstone.domain.user.entity.User;
@@ -64,5 +65,21 @@ public class UserProfileService {
         user.updateProfile(null, imageUrl, null); // 이미지 URL만 갱신
 
         return imageUrl;
+    }
+
+    @Transactional
+    public void changePassword(Long userId, PasswordChangeRequestDTO request) {
+        User user = findUser(userId);
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_NOT_MATCHED);
+        }
+
+        // 새 비밀번호와 확인 비밀번호 일치 여부 확인
+        if (!request.newPassword().equals(request.confirmNewPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCHED);
+        }
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
     }
 }

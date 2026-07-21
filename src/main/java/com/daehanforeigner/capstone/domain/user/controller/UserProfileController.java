@@ -1,5 +1,6 @@
 package com.daehanforeigner.capstone.domain.user.controller;
 
+import com.daehanforeigner.capstone.domain.user.dto.profile.PasswordChangeRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserProfileResponseDTO;
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserUpdateRequestDTO;
 import com.daehanforeigner.capstone.domain.user.service.profile.UserProfileService;
@@ -49,5 +50,14 @@ public class UserProfileController {
             @RequestPart("image") MultipartFile image) {
         String imageUrl = userProfileService.updateProfileImage(userId, image);
         return ResponseEntity.ok(RsData.success(imageUrl)); // 저장된 이미지 URL 반환
+    }
+
+    // 비밀번호 변경
+    @PatchMapping("/me/password")
+    public ResponseEntity<RsData<String>> changePassword(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody PasswordChangeRequestDTO request) {
+        userProfileService.changePassword(userId, request);
+        return ResponseEntity.ok(RsData.success("비밀번호가 변경되었습니다."));
     }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -78,5 +79,6 @@ public class User extends GlobalEntity {
     public void withdraw() {
         this.status = Status.WITHDRAWN;
         this.deletedAt = LocalDateTime.now();
+        this.refreshToken = null;
     }
 }
