@@ -35,6 +35,10 @@ public class UserService {
             throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
+        if (userRepository.existsByNickname(signupRequestDTO.nickname())) {
+            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+        }
+
         NativeLanguage nativeLanguage = parseNativeLanguage(signupRequestDTO.nativeLanguage());
 
         User user = User.builder()
