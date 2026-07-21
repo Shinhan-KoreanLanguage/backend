@@ -1,14 +1,18 @@
 package com.daehanforeigner.capstone.domain.user.controller;
 
 import com.daehanforeigner.capstone.domain.user.dto.profile.UserProfileResponseDTO;
+import com.daehanforeigner.capstone.domain.user.dto.profile.UserUpdateRequestDTO;
 import com.daehanforeigner.capstone.domain.user.service.profile.UserProfileService;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +30,15 @@ public class UserProfileController {
     public ResponseEntity<RsData<UserProfileResponseDTO>> getMyProfile(
             @AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(RsData.success(userProfileService.getMyProfile(userId)));
+    }
+
+    // 프로필 텍스트 수정 (닉네임·모국어)
+    @PatchMapping("/me")
+    public ResponseEntity<RsData<String>> updateProfile(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UserUpdateRequestDTO request) {
+        userProfileService.updateProfile(userId, request);
+        return ResponseEntity.ok(RsData.success("프로필이 수정되었습니다."));
     }
 
     // 프로필 이미지 업로드 (multipart/form-data)
