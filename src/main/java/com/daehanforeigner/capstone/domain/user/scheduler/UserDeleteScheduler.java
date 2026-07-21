@@ -33,8 +33,7 @@ public class UserDeleteScheduler {
             socialAccountRepository.deleteAllByUser(user); // 연관된 소셜 계정 삭제
 
             userRepository.delete(user); // 사용자 삭제 (하드 딜리트)
-
-            log.info("만료된 탈퇴 회원 {}명 DB 삭제 완료", targets.size());
         }
+            log.info("만료된 탈퇴 회원 {}명 DB 삭제 완료", targets.size());
     }
 }
