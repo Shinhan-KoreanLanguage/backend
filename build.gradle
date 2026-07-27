@@ -33,6 +33,10 @@ dependencies {
 	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
+	// WebMvc / RestClient (OpenAI 연동에서 사용)
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-restclient'
+
 	// MySQL
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
