@@ -3,6 +3,7 @@ package com.daehanforeigner.capstone.global.exception;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -29,6 +30,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.BAD_REQUEST.getHttpStatus())
                 .body(RsData.fail(ErrorCode.BAD_REQUEST, message));
+    }
+
+    // 요청 본문(JSON) 자체를 못 읽는 경우 ex) enum에 잘못된 값, 타입 불일치, 깨진 JSON
+    // → 컨트롤러 진입 전에 터지므로 @Valid와 별개. 이게 없으면 아래 Exception 핸들러가 잡아 500이 남
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<RsData<Void>> handleNotReadable(HttpMessageNotReadableException e) {
+        return ResponseEntity
+                .status(ErrorCode.BAD_REQUEST.getHttpStatus())
+                .body(RsData.fail(ErrorCode.BAD_REQUEST));
     }
 
     @ExceptionHandler(Exception.class) // 그 외 모든 예외처리

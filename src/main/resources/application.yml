@@ -9,7 +9,24 @@ spring:
       hibernate:
         format_sql: true
 
+  # 파일 업로드(multipart) 요청 크기 제한
+  servlet:
+    multipart:
+      max-file-size: 5MB      # 파일 1개 최대 크기
+      max-request-size: 10MB  # 요청 전체 최대 크기
+
+  # JSON → enum 변환 시 대소문자 무시 (예: "kr" → KR) — 회원가입/프로필수정 일관 처리
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+
 custom:
+  # 파일 저장 설정 (현재 로컬 스토리지, 추후 S3로 교체 예정)
+  file:
+    upload-dir: ${FILE_UPLOAD_DIR:uploads}                # 로컬 저장 루트 폴더 (앱 실행 위치 기준 상대경로)
+    url-prefix: ${FILE_URL_PREFIX:http://localhost:8080/images}  # 저장된 파일에 접근할 URL 앞부분
+    default-profile-image: ${DEFAULT_PROFILE_IMAGE_URL:http://localhost:8080/images/default-profile.png} # 프로필 미설정 시 기본 이미지
+
   # JWT 설정
   jwt:
     secret-key: ${JWT_SECRET}

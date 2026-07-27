@@ -1,12 +1,13 @@
-package com.daehanforeigner.capstone.domain.user.controller;
+package com.daehanforeigner.capstone.domain.user.controller.auth;
 
 import com.daehanforeigner.capstone.domain.social_account.dto.SocialLoginDTO;
 import com.daehanforeigner.capstone.domain.social_account.entity.Provider;
 import com.daehanforeigner.capstone.domain.social_account.service.SocialAuthService;
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.login.LoginResponseDTO;
+import com.daehanforeigner.capstone.domain.user.dto.login.TokenReissueRequestDTO;
 import com.daehanforeigner.capstone.domain.user.dto.register.SignupRequestDTO;
-import com.daehanforeigner.capstone.domain.user.service.UserService;
+import com.daehanforeigner.capstone.domain.user.service.auth.UserAuthService;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
 import com.daehanforeigner.capstone.global.oauth.client.OAuthClientFactory;
@@ -16,19 +17,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/auth")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserAuthService userService;
     private final SocialAuthService socialAuthService;
     private final OAuthClientFactory oAuthClientFactory;
 
@@ -41,6 +38,27 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<RsData<LoginResponseDTO>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         LoginResponseDTO loginResponseDTO = userService.login(loginRequestDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(RsData.success(loginResponseDTO));
+    }
+
+    // 로그아웃 — 인증된 사용자의 리프레시 토큰 제거
+    @PostMapping("/logout")
+    public ResponseEntity<RsData<String>> logout(@AuthenticationPrincipal Long userId) {
+        userService.logout(userId);
+        return ResponseEntity.ok(RsData.success("로그아웃 되었습니다."));
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/me")
+    public ResponseEntity<RsData<String>> deleteAccount(@AuthenticationPrincipal Long userId) {
+        userService.withdraw(userId);
+        return ResponseEntity.ok(RsData.success("회원 탈퇴가 완료되었습니다."));
+    }
+
+    // 액세스 토큰 재발급 — 만료된 액세스 토큰 상태에서 호출하므로 리프레시 토큰만 받음
+    @PostMapping("/reissue")
+    public ResponseEntity<RsData<LoginResponseDTO>> reissue(@Valid @RequestBody TokenReissueRequestDTO request) {
+        LoginResponseDTO loginResponseDTO = userService.reissue(request);
         return ResponseEntity.status(HttpStatus.OK).body(RsData.success(loginResponseDTO));
     }
 

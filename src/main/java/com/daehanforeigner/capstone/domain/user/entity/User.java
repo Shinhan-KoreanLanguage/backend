@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -47,7 +50,35 @@ public class User extends GlobalEntity {
     @Column(name = "refresh_token") // 리프레시 토큰
     private String refreshToken;
 
+    @Column(name = "deleted_at") // 탈퇴일시 (소프트 딜리트 14일 후 자동 삭제)
+    private LocalDateTime deletedAt;
+
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    // 프로필 정보 수정 처리
+    public void updateProfile(String nickname, String profileImageUrl, NativeLanguage nativeLanguage) {
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (nativeLanguage != null) {
+            this.nativeLanguage = nativeLanguage;
+        }
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
+    }
+
+    // 비밀번호 변경 처리
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
+    // 회원 탈퇴 처리 (소프트 딜리트)
+    public void withdraw() {
+        this.status = Status.WITHDRAWN;
+        this.deletedAt = LocalDateTime.now();
+        this.refreshToken = null;
     }
 }

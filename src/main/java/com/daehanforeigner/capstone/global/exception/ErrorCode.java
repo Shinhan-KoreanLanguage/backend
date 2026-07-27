@@ -28,7 +28,20 @@ public enum ErrorCode {
     UNSUPPORTED_SOCIAL_PROVIDER(HttpStatus.BAD_REQUEST, "UNSUPPORTED_SOCIAL_PROVIDER", "지원하지 않는 소셜 로그인 제공자입니다."), // Google, Facebook 외 다른 소셜 로그인 제공자를 요청한 경우
     INVALID_AUTHORIZATION_CODE(HttpStatus.BAD_REQUEST, "INVALID_AUTHORIZATION_CODE", "일치하지 않은 인가 코드입니다."), // 인가 코드가 일치하지 않는 경우
     SOCIAL_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "SOCIAL_AUTHENTICATION_FAILED", "소셜 로그인 인증에 실패했습니다."), // 소셜 로그인 인증에 실패한 경우
-    SOCIAL_ALREADY_REGISTERED(HttpStatus.CONFLICT, "SOCIAL_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."); // 이미 가입된 소셜 계정으로 회원가입을 시도한 경우
+    SOCIAL_ALREADY_REGISTERED(HttpStatus.CONFLICT, "SOCIAL_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."), // 이미 가입된 소셜 계정으로 회원가입을 시도한 경우
+    SOCIAL_USER_PASSWORD_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "SOCIAL_USER_PASSWORD_NOT_ALLOWED", "소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다."), // 소셜 로그인 사용자가 비밀번호 변경을 시도한 경우
+
+    // 회원 정보 (마이페이지) 관련 에러코드
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "존재하지 않는 회원입니다."), // userId로 회원 조회 실패 (탈퇴/삭제된 경우 포함)
+    PASSWORD_NOT_MATCHED(HttpStatus.UNAUTHORIZED, "PASSWORD_NOT_MATCHED", "기존 비밀번호가 일치하지 않습니다."), // 비밀번호 변경 시 기존 비밀번호 확인 실패
+    PASSWORD_CONFIRM_NOT_MATCHED(HttpStatus.BAD_REQUEST, "PASSWORD_CONFIRM_NOT_MATCHED", "새 비밀번호와 확인이 일치하지 않습니다."), // 새 비밀번호 != 비밀번호 확인
+    INVALID_PASSWORD_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD_FORMAT", "비밀번호는 8자 이상이어야 합니다."),// 비밀번호 규칙 위반
+    NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "NICKNAME_ALREADY_EXISTS", "이미 사용 중인 닉네임입니다."), // 닉네임 중복
+
+    // 파일(이미지) 업로드 관련 에러코드
+    EMPTY_FILE(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "업로드할 파일이 비어 있습니다."), // 파일이 없거나 빈 경우
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일(jpg, jpeg, png, gif)만 업로드할 수 있습니다."), // 허용되지 않는 확장자
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."); // 저장 중 IO 오류 등
 
     private final HttpStatus httpStatus;
     private final String code;
