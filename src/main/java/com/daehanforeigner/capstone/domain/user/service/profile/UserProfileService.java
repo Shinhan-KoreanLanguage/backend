@@ -71,6 +71,11 @@ public class UserProfileService {
     public void changePassword(Long userId, PasswordChangeRequestDTO request) {
         User user = findUser(userId);
 
+        // 소셜 로그인 사용자는 비밀번호가 없으므로 변경 불가함
+        if (user.getPassword() == null) {
+            throw new CustomException(ErrorCode.SOCIAL_USER_PASSWORD_NOT_ALLOWED);
+        }
+
         // 현재 비밀번호 확인
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.PASSWORD_NOT_MATCHED);

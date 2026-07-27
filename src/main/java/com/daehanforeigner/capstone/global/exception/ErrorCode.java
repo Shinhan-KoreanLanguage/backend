@@ -29,6 +29,7 @@ public enum ErrorCode {
     INVALID_AUTHORIZATION_CODE(HttpStatus.BAD_REQUEST, "INVALID_AUTHORIZATION_CODE", "일치하지 않은 인가 코드입니다."), // 인가 코드가 일치하지 않는 경우
     SOCIAL_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "SOCIAL_AUTHENTICATION_FAILED", "소셜 로그인 인증에 실패했습니다."), // 소셜 로그인 인증에 실패한 경우
     SOCIAL_ALREADY_REGISTERED(HttpStatus.CONFLICT, "SOCIAL_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."), // 이미 가입된 소셜 계정으로 회원가입을 시도한 경우
+    SOCIAL_USER_PASSWORD_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "SOCIAL_USER_PASSWORD_NOT_ALLOWED", "소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다."), // 소셜 로그인 사용자가 비밀번호 변경을 시도한 경우
 
     // 회원 정보 (마이페이지) 관련 에러코드
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "존재하지 않는 회원입니다."), // userId로 회원 조회 실패 (탈퇴/삭제된 경우 포함)
