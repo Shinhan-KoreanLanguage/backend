@@ -45,6 +45,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 인가 규칙
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN") // 관리자 전용 API는 ADMIN 권한 필요
                         .requestMatchers("/api/v1/auth/**").permitAll() // 인증 관련 API는 모두 허용
                         .requestMatchers("/images/**").permitAll() // 프로필 이미지 등 정적 파일은 인증 없이 접근
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger 관련 API는 모두 허용

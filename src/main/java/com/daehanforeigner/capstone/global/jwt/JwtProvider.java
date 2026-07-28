@@ -1,5 +1,6 @@
 package com.daehanforeigner.capstone.global.jwt;
 
+import com.daehanforeigner.capstone.domain.user.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -33,18 +34,19 @@ public class JwtProvider {
         this.refreshTokenExpDay = refreshTokenExpDay * 24 * 60 * 60 * 1000;
     }
 
-    public String createAccessToken(Long userId) {
-        return createToken(userId, accessTokenExpMin);
+    public String createAccessToken(Long userId, Role role) {
+        return createToken(userId, role, accessTokenExpMin);
     }
 
-    public String createRefreshToken(Long userId) {
-        return createToken(userId, refreshTokenExpDay);
+    public String createRefreshToken(Long userId, Role role) {
+        return createToken(userId, role, refreshTokenExpDay);
     }
 
-    public String createToken(Long userId, long expMillis) {
+    public String createToken(Long userId, Role role, long expMillis) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String .valueOf(userId))
+                .claim("role", role.name())
                 .issuedAt(now)
                 .expiration(new Date (now.getTime() + expMillis))
                 .signWith(secretKey)
@@ -61,6 +63,10 @@ public class JwtProvider {
 
     public Long getUserId(String token) {
         return Long.parseLong(parseClaims(token).getSubject());
+    }
+
+    public String getRole(String token) {
+        return parseClaims(token).get("role", String.class);
     }
 
     public boolean validateToken(String token) {
