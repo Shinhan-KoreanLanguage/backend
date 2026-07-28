@@ -2,6 +2,7 @@ package com.daehanforeigner.capstone.domain.learning_content.dto;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,4 +23,15 @@ public record LearningContentRequestDTO(
 
         String pronunciationGuide
 ) {
+        // DTO를 엔티티로 변환하는 메서드
+        public LearningContent toEntity() {
+            return LearningContent.builder()
+                    .contentType(contentType)
+                    .difficulty(difficulty)
+                    .text(text)
+                    .meaning(meaning)
+                    .exampleSentence(exampleSentence)
+                    .pronunciationGuide(pronunciationGuide)
+                    .build();
+        }
 }

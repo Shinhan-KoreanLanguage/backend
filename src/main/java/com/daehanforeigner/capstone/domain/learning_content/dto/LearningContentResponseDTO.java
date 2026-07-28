@@ -2,6 +2,7 @@ package com.daehanforeigner.capstone.domain.learning_content.dto;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 
 public record LearningContentResponseDTO(
         Long learningContentId, // 학습 컨텐츠 ID
@@ -18,4 +19,15 @@ public record LearningContentResponseDTO(
 
         String pronunciationGuide // 발음 가이드
 ) {
+    public static LearningContentResponseDTO from(LearningContent learningContent) {
+        return new LearningContentResponseDTO(
+                learningContent.getContentId(),
+                learningContent.getContentType(),
+                learningContent.getDifficulty(),
+                learningContent.getText(),
+                learningContent.getMeaning(),
+                learningContent.getExampleSentence(),
+                learningContent.getPronunciationGuide()
+        );
+    }
 }
