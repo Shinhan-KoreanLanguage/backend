@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content;
+package com.daehanforeigner.capstone.domain.learning_content.entity;
 
 public enum ContentType {
     SYLLABLE, // 음절

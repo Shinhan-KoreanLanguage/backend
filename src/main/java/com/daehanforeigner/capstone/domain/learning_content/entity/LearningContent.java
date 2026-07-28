@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content;
+package com.daehanforeigner.capstone.domain.learning_content.entity;
 
 import com.daehanforeigner.capstone.domain.content_category.ContentCategory;
 import jakarta.persistence.*;

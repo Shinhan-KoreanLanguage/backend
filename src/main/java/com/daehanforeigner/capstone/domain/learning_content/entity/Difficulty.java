@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content;
+package com.daehanforeigner.capstone.domain.learning_content.entity;
 
 public enum Difficulty {
     BEGINNER, // 초급
