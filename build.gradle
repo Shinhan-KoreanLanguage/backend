@@ -21,6 +21,9 @@ dependencies {
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// RestClient (RestTemplateBuilder 등 — Boot 4에서 별도 모듈로 분리됨)
+	implementation 'org.springframework.boot:spring-boot-starter-restclient'
+
 	// Validation (DTO 검증 — @NotBlank, @Email 등)
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
@@ -32,10 +35,6 @@ dependencies {
 
 	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-	// WebMvc / RestClient (OpenAI 연동에서 사용)
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springframework.boot:spring-boot-starter-restclient'
 
 	// MySQL
 	runtimeOnly 'com.mysql:mysql-connector-j'

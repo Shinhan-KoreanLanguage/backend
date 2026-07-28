@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.pronunciation_attempt;
+package com.daehanforeigner.capstone.domain.pronunciation_attempt.entity;
 
 import com.daehanforeigner.capstone.domain.learning_content.LearningContent;
 import com.daehanforeigner.capstone.domain.user.entity.User;

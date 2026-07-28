@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.audio_file.entity;
 
-import com.daehanforeigner.capstone.domain.pronunciation_attempt.PronunciationAttempt;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
