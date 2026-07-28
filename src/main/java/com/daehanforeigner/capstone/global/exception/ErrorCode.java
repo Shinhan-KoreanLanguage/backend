@@ -41,7 +41,10 @@ public enum ErrorCode {
     // 파일(이미지) 업로드 관련 에러코드
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "업로드할 파일이 비어 있습니다."), // 파일이 없거나 빈 경우
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일(jpg, jpeg, png, gif)만 업로드할 수 있습니다."), // 허용되지 않는 확장자
-    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."); // 저장 중 IO 오류 등
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."), // 저장 중 IO 오류 등
+
+    // 학습콘텐츠 관련 에러코드
+    CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT_NOT_FOUND", "존재하지 않는 학습 콘텐츠입니다."); // 학습 콘텐츠 조회 실패
 
     private final HttpStatus httpStatus;
     private final String code;
