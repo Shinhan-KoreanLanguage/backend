@@ -9,6 +9,12 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    web:
+      pageable:
+        max-page-size: 2000 # 클라이언트가 요청 가능한 최대 페이지 사이즈 (기본값)
+        default-page-size: 20 # 기본 페이지 사이즈
+
   # 파일 업로드(multipart) 요청 크기 제한
   servlet:
     multipart:
