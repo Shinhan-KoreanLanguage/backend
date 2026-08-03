@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -47,10 +49,27 @@ public class AdminLearningContentService {
                 request.meaning(), request.exampleSentence(), request.pronunciationGuide());
     }
 
-    // 삭제
+    // 단일 삭제
     @Transactional
     public void deleteContent(Long contentId) {
         learningContentRepository.delete(findContent(contentId));
+    }
+
+    // 일괄 삭제
+    @Transactional
+    public void deleteContents(List<Long> contentIds) {
+        if (contentIds == null || contentIds.isEmpty()) {
+            throw new CustomException(ErrorCode.CONTENT_IDS_REQUIRED);
+        }
+
+        List<LearningContent> contents = learningContentRepository.findAllById(contentIds);
+
+        // 요청한 개수와 조회된 개수가 다르면 = 없는 ID가 섞여 있음 → 전부 취소
+        if (contents.size() != contentIds.size()) {
+            throw new CustomException(ErrorCode.CONTENT_NOT_FOUND);
+        }
+
+        learningContentRepository.deleteAll(contents);
     }
 
     // 수정·삭제 시 대상 조회 (없으면 404)

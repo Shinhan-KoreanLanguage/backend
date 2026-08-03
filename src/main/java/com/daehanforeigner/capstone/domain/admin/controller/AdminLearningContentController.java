@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/admin/contents")
 @RequiredArgsConstructor
@@ -53,10 +55,17 @@ public class AdminLearningContentController {
         return ResponseEntity.ok(RsData.success("학습 콘텐츠가 수정되었습니다."));
     }
 
-    // 삭제
+    // 단일 삭제
     @DeleteMapping("/{contentId}")
     public ResponseEntity<RsData<String>> deleteContent(@PathVariable("contentId") Long contentId) {
         adminLearningContentService.deleteContent(contentId);
         return ResponseEntity.ok(RsData.success("학습 콘텐츠가 삭제되었습니다."));
+    }
+
+    // 일괄 삭제 (DELETE /api/v1/admin/contents?ids=1,2,3)
+    @DeleteMapping
+    public ResponseEntity<RsData<String>> deleteContents(@RequestParam("ids") List<Long> ids) {
+        adminLearningContentService.deleteContents(ids);
+        return ResponseEntity.ok(RsData.success(ids.size() + "개의 학습 콘텐츠가 삭제되었습니다."));
     }
 }
