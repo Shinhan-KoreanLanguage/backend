@@ -2,6 +2,7 @@ package com.daehanforeigner.capstone.domain.admin.service;
 
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
+import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
 import com.daehanforeigner.capstone.global.exception.CustomException;
@@ -19,9 +20,13 @@ public class AdminLearningContentService {
 
     private final LearningContentRepository learningContentRepository;
 
-    // 전체 목록 조회
-    public List<LearningContentResponseDTO> getContents() {
-        return learningContentRepository.findAll().stream()
+    // 목록 조회 (contentType 없으면 전체, 있으면 해당 유형만)
+    public List<LearningContentResponseDTO> getContents(ContentType contentType) {
+        List<LearningContent> contents = (contentType == null)
+                ? learningContentRepository.findAll()
+                : learningContentRepository.findAllByContentType(contentType);
+
+        return contents.stream()
                 .map(LearningContentResponseDTO::from)
                 .toList();
     }

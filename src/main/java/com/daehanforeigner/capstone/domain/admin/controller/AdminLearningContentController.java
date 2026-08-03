@@ -3,6 +3,7 @@ package com.daehanforeigner.capstone.domain.admin.controller;
 import com.daehanforeigner.capstone.domain.admin.service.AdminLearningContentService;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
+import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,11 @@ public class AdminLearningContentController {
 
     private final AdminLearningContentService adminLearningContentService;
 
-    // 전체 목록 조회
+    // 목록 조회 (?contentType=WORD / SENTENCE / SYLLABLE, 없으면 전체)
     @GetMapping
-    public ResponseEntity<RsData<List<LearningContentResponseDTO>>> getContents() {
-        return ResponseEntity.ok(RsData.success(adminLearningContentService.getContents()));
+    public ResponseEntity<RsData<List<LearningContentResponseDTO>>> getContents(
+            @RequestParam(value = "contentType", required = false) ContentType contentType) {
+        return ResponseEntity.ok(RsData.success(adminLearningContentService.getContents(contentType)));
     }
 
     // 등록
