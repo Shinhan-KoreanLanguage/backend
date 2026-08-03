@@ -3,15 +3,17 @@ package com.daehanforeigner.capstone.domain.admin.service;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
+import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
+import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,15 +22,16 @@ public class AdminLearningContentService {
 
     private final LearningContentRepository learningContentRepository;
 
-    // 목록 조회 (contentType 없으면 전체, 있으면 해당 유형만)
-    public List<LearningContentResponseDTO> getContents(ContentType contentType) {
-        List<LearningContent> contents = (contentType == null)
-                ? learningContentRepository.findAll()
-                : learningContentRepository.findAllByContentType(contentType);
+    // 목록 조회 (유형·난이도·검색어 필터 + 페이징)
+    public PageResponseDTO<LearningContentResponseDTO> getContents(ContentType contentType,
+                                                                   Difficulty difficulty,
+                                                                   String keyword,
+                                                                   Pageable pageable) {
+        Page<LearningContentResponseDTO> page = learningContentRepository
+                .searchContents(contentType, difficulty, normalizeKeyword(keyword), pageable)
+                .map(LearningContentResponseDTO::from); // 페이지 정보는 유지하고 내용만 DTO로 변환
 
-        return contents.stream()
-                .map(LearningContentResponseDTO::from)
-                .toList();
+        return PageResponseDTO.from(page);
     }
 
     // 등록
@@ -54,5 +57,10 @@ public class AdminLearningContentService {
     private LearningContent findContent(Long contentId) {
         return learningContentRepository.findById(contentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+    }
+
+    // 빈 문자열·공백 검색어를 null로 정규화 (프론트가 ""를 보내도 전체 조회되도록)
+    private String normalizeKeyword(String keyword) {
+        return (keyword == null || keyword.isBlank()) ? null : keyword.trim();
     }
 }
