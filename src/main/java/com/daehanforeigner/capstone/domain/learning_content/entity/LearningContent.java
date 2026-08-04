@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.learning_content.entity;
 
-import com.daehanforeigner.capstone.domain.content_category.ContentCategory;
+import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
