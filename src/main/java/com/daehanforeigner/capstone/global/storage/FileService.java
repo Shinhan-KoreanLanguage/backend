@@ -28,18 +28,38 @@ public class FileService {
     private String urlPrefix;
 
     // 허용 확장자 (이미지만)
-    private static final List<String> ALLOWED_EXTENSIONS = List.of("jpg", "jpeg", "png", "gif");
+    private static final List<String> IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png", "gif"); // 이미지 (프로필)
 
-    // 이미지 저장 후 접근 URL 반환. directory: 하위 폴더명(예: "profile")
+    private static final List<String> AUDIO_EXTENSIONS = List.of("mp3", "wav", "m4a"); // 오디오 (발음)
+
+    private static final List<String> VIDEO_EXTENSIONS = List.of("mp4","webm", "avi", "mov"); // 비디오 (학습 영상)
+
+    // 이미지 저장
     public String saveImage(MultipartFile file, String directory) {
+        return save(file, directory, IMAGE_EXTENSIONS);
+    }
+
+    // 오디오 저장
+    public String saveAudio(MultipartFile file, String directory) {
+        return save(file, directory, AUDIO_EXTENSIONS);
+    }
+
+    // 비디오 저장
+    public String saveVideo(MultipartFile file, String directory) {
+        return save(file, directory, VIDEO_EXTENSIONS);
+    }
+
+    // 실제 저장 로직 — 검증·저장 과정은 모두 동일하고 허용 확장자만 다르므로 공통화
+    // directory: 하위 폴더명(예: "profile", "audio", "video")
+    private String save(MultipartFile file, String directory, List<String> allowedExtensions) {
         // 1. 빈 파일 검증
         if (file == null || file.isEmpty()) {
             throw new CustomException(ErrorCode.EMPTY_FILE);
         }
 
-        // 2. 확장자 검증
+        // 2. 확장자 검증 (용도별 허용 목록과 대조)
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        if (extension == null || !ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+        if (extension == null || !allowedExtensions.contains(extension.toLowerCase())) {
             throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
         }
 
@@ -54,7 +74,7 @@ public class FileService {
             // 5. 실제 파일 저장
             file.transferTo(directoryPath.resolve(storedFileName).toFile());
 
-            // 6. 접근 URL 반환 (예: http://localhost:8080/images/profile/uuid.png)
+            // 6. 접근 URL 반환 (예: http://localhost:8080/images/audio/uuid.mp3)
             return urlPrefix + "/" + directory + "/" + storedFileName;
 
         } catch (IOException e) {
