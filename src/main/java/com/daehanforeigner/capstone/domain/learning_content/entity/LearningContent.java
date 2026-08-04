@@ -46,7 +46,7 @@ public class LearningContent {
 
     // 학습 콘텐츠 정보 수정 처리 (controller단에서는 putMapping으로 처리)
     public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty, String text, String meaning, String exampleSentence, String pronunciationGuide) {
-        this.contentCategory = this.contentCategory;
+        this.contentCategory = contentCategory;
         this.contentType = contentType;
         this.difficulty = difficulty;
         this.text = text;
