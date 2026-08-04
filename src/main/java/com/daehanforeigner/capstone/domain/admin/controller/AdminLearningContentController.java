@@ -64,7 +64,7 @@ public class AdminLearningContentController {
 
     // 일괄 삭제 (DELETE /api/v1/admin/contents?ids=1,2,3)
     @DeleteMapping
-    public ResponseEntity<RsData<String>> deleteContents(@RequestParam("ids") List<Long> ids) {
+    public ResponseEntity<RsData<String>> deleteContents(@RequestParam(value = "ids", required = false) List<Long> ids) { // 파라미터가 없을 경우 null 처리 됨에 따라 400 에러 발생
         adminLearningContentService.deleteContents(ids);
         return ResponseEntity.ok(RsData.success(ids.size() + "개의 학습 콘텐츠가 삭제되었습니다."));
     }
