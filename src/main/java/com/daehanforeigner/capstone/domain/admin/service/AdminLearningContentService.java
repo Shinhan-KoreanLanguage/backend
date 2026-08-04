@@ -47,23 +47,22 @@ public class AdminLearningContentService {
 
     // 등록
     @Transactional
-    public Long createContent(LearningContentRequestDTO request, MultipartFile audioFile, MultipartFile videoFile) {
+    public Long createContent(LearningContentRequestDTO request,
+                              MultipartFile audioFile, MultipartFile videoFile) {
         ContentCategory category = findCategory(request.categoryId());
+
+        // 등록 시에는 음성·영상이 모두 필요 (발음 연습 화면이 둘 다 사용)
+        if (audioFile == null || audioFile.isEmpty() || videoFile == null || videoFile.isEmpty()) {
+            throw new CustomException(ErrorCode.MEDIA_FILE_REQUIRED);
+        }
+
         LearningContent content = learningContentRepository.save(request.toEntity(category));
 
-        String audioUrl = (audioFile != null && !audioFile.isEmpty())
-                ? fileService.saveAudio(audioFile, "audio") : null;
-        String videoUrl = (videoFile != null && !videoFile.isEmpty())
-                ? fileService.saveVideo(videoFile, "video") : null;
-
-        // 저장된 URL이 모두 null이 아닌 경우 생성함
-        if (audioUrl != null && videoUrl != null) {
-            standardPronunciationRepository.save(StandardPronunciation.builder()
-                    .learningContent(content)
-                    .answerAudioUrl(audioUrl)
-                    .answerVideoUrl(videoUrl)
-                    .build());
-        }
+        standardPronunciationRepository.save(StandardPronunciation.builder()
+                .learningContent(content)
+                .answerAudioUrl(fileService.saveAudio(audioFile, "audio"))
+                .answerVideoUrl(fileService.saveVideo(videoFile, "video"))
+                .build());
 
         return content.getContentId();
     }

@@ -46,7 +46,8 @@ public enum ErrorCode {
     // 학습콘텐츠 관련 에러코드
     CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT_NOT_FOUND", "존재하지 않는 학습 콘텐츠입니다."), // 학습 콘텐츠 조회 실패
     CONTENT_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "CONTENT_IDS_REQUIRED", "삭제할 학습 콘텐츠를 선택해주세요."), // 학습 콘텐츠 일괄 삭제 시 아무것도 선택하지 않거나 비어있을 때 삭제 요청을 시도한 경우
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."); // 학습 카테고리 조회 실패
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."), // 학습 카테고리 조회 실패
+    MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."); // 콘텐츠 등록 시 미디어 누락
 
     private final HttpStatus httpStatus;
     private final String code;
