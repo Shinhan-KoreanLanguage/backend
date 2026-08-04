@@ -18,8 +18,8 @@ spring:
   # 파일 업로드(multipart) 요청 크기 제한
   servlet:
     multipart:
-      max-file-size: 5MB      # 파일 1개 최대 크기
-      max-request-size: 10MB  # 요청 전체 최대 크기
+      max-file-size: 200MB      # 파일 1개 최대 크기
+      max-request-size: 220MB  # 요청 전체 최대 크기
 
   # JSON → enum 변환 시 대소문자 무시 (예: "kr" → KR) — 회원가입/프로필수정 일관 처리
   jackson:
