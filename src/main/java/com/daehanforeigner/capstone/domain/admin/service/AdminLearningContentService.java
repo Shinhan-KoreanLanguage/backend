@@ -62,16 +62,7 @@ public class AdminLearningContentService {
             throw new CustomException(ErrorCode.CONTENT_IDS_REQUIRED);
         }
 
-        List<LearningContent> contents = learningContentRepository.findAllById(contentIds);
-
         learningContentRepository.deleteAllById(contentIds);
-
-        // 요청한 개수와 조회된 개수가 다르면 = 없는 ID가 섞여 있음 → 전부 취소
-        if (contents.size() != contentIds.size()) {
-            throw new CustomException(ErrorCode.CONTENT_NOT_FOUND);
-        }
-
-        learningContentRepository.deleteAll(contents);
     }
 
     // 수정·삭제 시 대상 조회 (없으면 404)

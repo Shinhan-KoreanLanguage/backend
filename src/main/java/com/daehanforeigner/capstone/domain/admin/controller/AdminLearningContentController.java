@@ -66,6 +66,6 @@ public class AdminLearningContentController {
     @DeleteMapping
     public ResponseEntity<RsData<String>> deleteContents(@RequestParam(value = "ids", required = false) List<Long> ids) { // 파라미터가 없을 경우 null 처리 됨에 따라 400 에러 발생
         adminLearningContentService.deleteContents(ids);
-        return ResponseEntity.ok(RsData.success(ids.size() + "개의 학습 콘텐츠가 삭제되었습니다."));
+        return ResponseEntity.ok(RsData.success("선택한 학습 콘텐츠가 삭제되었습니다."));
     }
 }
