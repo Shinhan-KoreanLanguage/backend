@@ -1,8 +1,9 @@
-package com.daehanforeigner.capstone.domain.learning_content;
+package com.daehanforeigner.capstone.domain.learning_content.entity;
 
 import com.daehanforeigner.capstone.domain.content_category.ContentCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "learning_content")
 public class LearningContent {
 
@@ -41,4 +43,14 @@ public class LearningContent {
 
     @Column(name = "pronunciation_guide") // 발음 가이드
     private String pronunciationGuide;
+
+    // 학습 콘텐츠 정보 수정 처리 (controller단에서는 putMapping으로 처리)
+    public void update(ContentType contentType, Difficulty difficulty, String text, String meaning, String exampleSentence, String pronunciationGuide) {
+        this.contentType = contentType;
+        this.difficulty = difficulty;
+        this.text = text;
+        this.meaning = meaning;
+        this.exampleSentence = exampleSentence;
+        this.pronunciationGuide = pronunciationGuide;
+    }
 }

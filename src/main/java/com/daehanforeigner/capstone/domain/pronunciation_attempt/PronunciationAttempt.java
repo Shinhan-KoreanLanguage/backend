@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.pronunciation_attempt;
 
-import com.daehanforeigner.capstone.domain.learning_content.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

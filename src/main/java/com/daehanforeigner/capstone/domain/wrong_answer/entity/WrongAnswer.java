@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.wrong_answer.entity;
 
-import com.daehanforeigner.capstone.domain.learning_content.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.user.entity.User;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
