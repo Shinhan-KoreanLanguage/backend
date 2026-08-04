@@ -8,14 +8,18 @@ import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
+import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
+import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import com.daehanforeigner.capstone.global.storage.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +32,10 @@ public class AdminLearningContentService {
 
     private final ContentCategoryRepository contentCategoryRepository;
 
+    private final StandardPronunciationRepository standardPronunciationRepository;
+
+    private final FileService fileService;
+
     // 목록 조회 (유형·난이도·검색어 필터 + 페이징)
     public PageResponseDTO<LearningContentResponseDTO> getContents(Long categoryId, ContentType contentType, Difficulty difficulty,String keyword, Pageable pageable) {
         Page<LearningContentResponseDTO> page = learningContentRepository
@@ -39,17 +47,56 @@ public class AdminLearningContentService {
 
     // 등록
     @Transactional
-    public Long createContent(LearningContentRequestDTO request) {
+    public Long createContent(LearningContentRequestDTO request, MultipartFile audioFile, MultipartFile videoFile) {
         ContentCategory category = findCategory(request.categoryId());
-        return learningContentRepository.save(request.toEntity(category)).getContentId();
+        LearningContent content = learningContentRepository.save(request.toEntity(category));
+
+        String audioUrl = (audioFile != null && !audioFile.isEmpty())
+                ? fileService.saveAudio(audioFile, "audio") : null;
+        String videoUrl = (videoFile != null && !videoFile.isEmpty())
+                ? fileService.saveVideo(videoFile, "video") : null;
+
+        // 저장된 URL이 모두 null이 아닌 경우 생성함
+        if (audioUrl != null && videoUrl != null) {
+            standardPronunciationRepository.save(StandardPronunciation.builder()
+                    .learningContent(content)
+                    .answerAudioUrl(audioUrl)
+                    .answerVideoUrl(videoUrl)
+                    .build());
+        }
+
+        return content.getContentId();
     }
 
     // 수정
     @Transactional
-    public void updateContent(Long contentId, LearningContentRequestDTO request) {
+    public void updateContent(Long contentId, LearningContentRequestDTO request, MultipartFile audioFile, MultipartFile videoFile) {
         ContentCategory category = findCategory(request.categoryId());
-        findContent(contentId).update(request.contentType(), request.difficulty(), request.text(),
+        LearningContent content = findContent(contentId);
+
+        content.update(category, request.contentType(), request.difficulty(), request.text(),
                 request.meaning(), request.exampleSentence(), request.pronunciationGuide());
+
+        String audioUrl = (audioFile != null && !audioFile.isEmpty())
+                ? fileService.saveAudio(audioFile, "audio") : null;
+        String videoUrl = (videoFile != null && !videoFile.isEmpty())
+                ? fileService.saveVideo(videoFile, "video") : null;
+
+        if (audioUrl != null || videoUrl != null) {
+            // 텍스트만 등록됐던 콘텐츠라면 발음 자료가 없으므로 새로 만든다
+            StandardPronunciation pronunciation = standardPronunciationRepository
+                    .findByLearningContent(content)
+                    .orElseGet(() -> standardPronunciationRepository.save(
+                            StandardPronunciation.builder().learningContent(content).build()));
+
+            // 새로 올린 파일만 교체 (안 올린 쪽은 기존 URL 유지)
+            if (audioUrl != null) {
+                pronunciation.updateAudioUrl(audioUrl);
+            }
+            if (videoUrl != null) {
+                pronunciation.updateVideoUrl(videoUrl);
+            }
+        }
     }
 
     // 단일 삭제
