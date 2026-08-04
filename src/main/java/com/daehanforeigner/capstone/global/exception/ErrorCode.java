@@ -40,7 +40,7 @@ public enum ErrorCode {
 
     // 파일(이미지) 업로드 관련 에러코드
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "업로드할 파일이 비어 있습니다."), // 파일이 없거나 빈 경우
-    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일(jpg, jpeg, png, gif)만 업로드할 수 있습니다."), // 허용되지 않는 확장자
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "허용되지 않는 파일 형식입니다."), // 허용되지 않는 파일 형식으로 업로드를 시도한 경우
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."), // 저장 중 IO 오류 등
 
     // 학습콘텐츠 관련 에러코드
