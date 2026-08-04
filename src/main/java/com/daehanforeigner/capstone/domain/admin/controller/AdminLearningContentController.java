@@ -25,9 +25,10 @@ public class AdminLearningContentController {
 
     private final AdminLearningContentService adminLearningContentService;
 
-    // 목록 조회 (?contentType=WORD&difficulty=BEGINNER&keyword=사과&page=0&size=20)
+    // 목록 조회 ex) ?categoryId=1&contentType=WORD&difficulty=BEGINNER&keyword=사과&page=0&size=20
     @GetMapping
     public ResponseEntity<RsData<PageResponseDTO<LearningContentResponseDTO>>> getContents(
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "contentType", required = false) ContentType contentType,
             @RequestParam(value = "difficulty", required = false) Difficulty difficulty,
             @RequestParam(value = "keyword", required = false) String keyword,
@@ -35,7 +36,7 @@ public class AdminLearningContentController {
             Pageable pageable) {
 
         return ResponseEntity.ok(RsData.success(
-                adminLearningContentService.getContents(contentType, difficulty, keyword, pageable)));
+                adminLearningContentService.getContents(categoryId, contentType, difficulty, keyword, pageable)));
     }
 
     // 등록
