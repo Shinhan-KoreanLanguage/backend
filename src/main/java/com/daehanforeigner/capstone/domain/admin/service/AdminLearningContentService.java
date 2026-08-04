@@ -1,5 +1,7 @@
 package com.daehanforeigner.capstone.domain.admin.service;
 
+import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
+import com.daehanforeigner.capstone.domain.content_category.repository.ContentCategoryRepository;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
@@ -24,13 +26,12 @@ public class AdminLearningContentService {
 
     private final LearningContentRepository learningContentRepository;
 
+    private final ContentCategoryRepository contentCategoryRepository;
+
     // 목록 조회 (유형·난이도·검색어 필터 + 페이징)
-    public PageResponseDTO<LearningContentResponseDTO> getContents(ContentType contentType,
-                                                                   Difficulty difficulty,
-                                                                   String keyword,
-                                                                   Pageable pageable) {
+    public PageResponseDTO<LearningContentResponseDTO> getContents(Long categoryId, ContentType contentType, Difficulty difficulty,String keyword, Pageable pageable) {
         Page<LearningContentResponseDTO> page = learningContentRepository
-                .searchContents(contentType, difficulty, normalizeKeyword(keyword), pageable)
+                .searchContents(categoryId, contentType, difficulty, normalizeKeyword(keyword), pageable)
                 .map(LearningContentResponseDTO::from); // 페이지 정보는 유지하고 내용만 DTO로 변환
 
         return PageResponseDTO.from(page);
@@ -39,12 +40,14 @@ public class AdminLearningContentService {
     // 등록
     @Transactional
     public Long createContent(LearningContentRequestDTO request) {
-        return learningContentRepository.save(request.toEntity()).getContentId();
+        ContentCategory category = findCategory(request.categoryId());
+        return learningContentRepository.save(request.toEntity(category)).getContentId();
     }
 
     // 수정
     @Transactional
     public void updateContent(Long contentId, LearningContentRequestDTO request) {
+        ContentCategory category = findCategory(request.categoryId());
         findContent(contentId).update(request.contentType(), request.difficulty(), request.text(),
                 request.meaning(), request.exampleSentence(), request.pronunciationGuide());
     }
@@ -63,6 +66,12 @@ public class AdminLearningContentService {
         }
 
         learningContentRepository.deleteAllById(contentIds);
+    }
+
+    // 카테고리 조회 (없으면 404)
+    private ContentCategory findCategory(Long categoryId) {
+        return contentCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
     // 수정·삭제 시 대상 조회 (없으면 404)
