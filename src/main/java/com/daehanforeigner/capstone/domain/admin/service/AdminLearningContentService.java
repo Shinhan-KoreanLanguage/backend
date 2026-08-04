@@ -101,7 +101,11 @@ public class AdminLearningContentService {
     // 단일 삭제
     @Transactional
     public void deleteContent(Long contentId) {
-        learningContentRepository.delete(findContent(contentId));
+        LearningContent content = findContent(contentId);
+
+        standardPronunciationRepository.deleteByLearningContent(content);
+
+        learningContentRepository.delete(content);
     }
 
     // 일괄 삭제
@@ -111,7 +115,12 @@ public class AdminLearningContentService {
             throw new CustomException(ErrorCode.CONTENT_IDS_REQUIRED);
         }
 
-        learningContentRepository.deleteAllById(contentIds);
+        List<LearningContent> contents = learningContentRepository.findAllById(contentIds);
+
+        // 연관된 발음 자료 먼저 삭제
+        standardPronunciationRepository.deleteAllByLearningContentIn(contents);
+
+        learningContentRepository.deleteAll(contents);
     }
 
     // 카테고리 조회 (없으면 404)
