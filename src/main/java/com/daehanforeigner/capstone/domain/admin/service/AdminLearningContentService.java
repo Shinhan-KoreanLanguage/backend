@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -37,12 +39,21 @@ public class AdminLearningContentService {
     private final FileService fileService;
 
     // 목록 조회 (유형·난이도·검색어 필터 + 페이징)
-    public PageResponseDTO<LearningContentResponseDTO> getContents(Long categoryId, ContentType contentType, Difficulty difficulty,String keyword, Pageable pageable) {
-        Page<LearningContentResponseDTO> page = learningContentRepository
-                .searchContents(categoryId, contentType, difficulty, normalizeKeyword(keyword), pageable)
-                .map(LearningContentResponseDTO::from); // 페이지 정보는 유지하고 내용만 DTO로 변환
+    public PageResponseDTO<LearningContentResponseDTO> getContents(Long categoryId, ContentType contentType, Difficulty difficulty, String keyword, Pageable pageable) {
+        Page<LearningContent> page = learningContentRepository
+                .searchContents(categoryId, contentType, difficulty, normalizeKeyword(keyword), pageable);
 
-        return PageResponseDTO.from(page);
+        // 현재 페이지 콘텐츠들의 발음 자료를 한 번에 조회 후 contentId로 매핑 (N+1 방지)
+        Map<Long, StandardPronunciation> pronunciationMap = new HashMap<>();
+        for (StandardPronunciation pronunciation :
+                standardPronunciationRepository.findAllByLearningContentIn(page.getContent())) {
+            pronunciationMap.put(pronunciation.getLearningContent().getContentId(), pronunciation);
+        }
+
+        Page<LearningContentResponseDTO> dtoPage = page.map(content ->
+                LearningContentResponseDTO.from(content, pronunciationMap.get(content.getContentId())));
+
+        return PageResponseDTO.from(dtoPage);
     }
 
     // 등록

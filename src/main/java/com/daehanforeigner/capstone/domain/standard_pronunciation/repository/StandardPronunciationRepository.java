@@ -17,4 +17,7 @@ public interface StandardPronunciationRepository extends JpaRepository<StandardP
 
     // 콘텐츠 일괄 삭제 시 연관 발음 자료 제거
     void deleteAllByLearningContentIn(List<LearningContent> learningContents);
+
+    // 목록 조회 시 현재 페이지 콘텐츠 발음 자료 한 번에 조회 (N + 1 문제 해결)
+    List<StandardPronunciation> findAllByLearningContentIn(List<LearningContent> learningContents);
 }
