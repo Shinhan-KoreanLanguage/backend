@@ -12,14 +12,14 @@ spring:
   data:
     web:
       pageable:
-        max-page-size: 2000 # 클라이언트가 요청 가능한 최대 페이지 사이즈 (기본값)
+        max-page-size: 100 # 클라이언트가 요청 가능한 최대 페이지 사이즈
         default-page-size: 20 # 기본 페이지 사이즈
 
   # 파일 업로드(multipart) 요청 크기 제한
   servlet:
     multipart:
-      max-file-size: 200MB      # 파일 1개 최대 크기
-      max-request-size: 220MB  # 요청 전체 최대 크기
+      max-file-size: 50MB      # 파일 1개 최대 크기
+      max-request-size: 100MB  # 요청 전체 최대 크기
 
   # JSON → enum 변환 시 대소문자 무시 (예: "kr" → KR) — 회원가입/프로필수정 일관 처리
   jackson:
