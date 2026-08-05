@@ -13,8 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,9 +27,10 @@ public class AdminLearningContentController {
 
     private final AdminLearningContentService adminLearningContentService;
 
-    // 목록 조회 (?contentType=WORD&difficulty=BEGINNER&keyword=사과&page=0&size=20)
+    // 목록 조회 ex) ?categoryId=1&contentType=WORD&difficulty=BEGINNER&keyword=사과&page=0&size=20
     @GetMapping
     public ResponseEntity<RsData<PageResponseDTO<LearningContentResponseDTO>>> getContents(
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "contentType", required = false) ContentType contentType,
             @RequestParam(value = "difficulty", required = false) Difficulty difficulty,
             @RequestParam(value = "keyword", required = false) String keyword,
@@ -35,23 +38,29 @@ public class AdminLearningContentController {
             Pageable pageable) {
 
         return ResponseEntity.ok(RsData.success(
-                adminLearningContentService.getContents(contentType, difficulty, keyword, pageable)));
+                adminLearningContentService.getContents(categoryId, contentType, difficulty, keyword, pageable)));
     }
 
-    // 등록
-    @PostMapping
+    // 등록 (multipart/form-data)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RsData<Long>> createContent(
-            @Valid @RequestBody LearningContentRequestDTO request) {
+            @Valid @RequestPart("content") LearningContentRequestDTO request,
+            @RequestPart(value = "audioFile", required = false) MultipartFile audioFile,
+            @RequestPart(value = "videoFile", required = false) MultipartFile videoFile) {
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(RsData.success(adminLearningContentService.createContent(request)));
+                .body(RsData.success(adminLearningContentService.createContent(request, audioFile, videoFile)));
     }
 
-    // 수정 (전체 교체)
-    @PutMapping("/{contentId}")
+    // 수정 (multipart/form-data) — 파일을 안 보내면 기존 파일 유지
+    @PutMapping(value = "/{contentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RsData<String>> updateContent(
             @PathVariable("contentId") Long contentId,
-            @Valid @RequestBody LearningContentRequestDTO request) {
-        adminLearningContentService.updateContent(contentId, request);
+            @Valid @RequestPart("content") LearningContentRequestDTO request,
+            @RequestPart(value = "audioFile", required = false) MultipartFile audioFile,
+            @RequestPart(value = "videoFile", required = false) MultipartFile videoFile) {
+
+        adminLearningContentService.updateContent(contentId, request, audioFile, videoFile);
         return ResponseEntity.ok(RsData.success("학습 콘텐츠가 수정되었습니다."));
     }
 

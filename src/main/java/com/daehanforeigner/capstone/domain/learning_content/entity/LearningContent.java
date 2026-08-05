@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.learning_content.entity;
 
-import com.daehanforeigner.capstone.domain.content_category.ContentCategory;
+import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,7 +45,8 @@ public class LearningContent {
     private String pronunciationGuide;
 
     // 학습 콘텐츠 정보 수정 처리 (controller단에서는 putMapping으로 처리)
-    public void update(ContentType contentType, Difficulty difficulty, String text, String meaning, String exampleSentence, String pronunciationGuide) {
+    public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty, String text, String meaning, String exampleSentence, String pronunciationGuide) {
+        this.contentCategory = contentCategory;
         this.contentType = contentType;
         this.difficulty = difficulty;
         this.text = text;

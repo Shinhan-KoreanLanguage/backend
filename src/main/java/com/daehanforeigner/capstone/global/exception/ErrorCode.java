@@ -40,12 +40,14 @@ public enum ErrorCode {
 
     // 파일(이미지) 업로드 관련 에러코드
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "EMPTY_FILE", "업로드할 파일이 비어 있습니다."), // 파일이 없거나 빈 경우
-    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일(jpg, jpeg, png, gif)만 업로드할 수 있습니다."), // 허용되지 않는 확장자
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "허용되지 않는 파일 형식입니다."), // 허용되지 않는 파일 형식으로 업로드를 시도한 경우
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_UPLOAD_FAILED", "파일 업로드에 실패했습니다."), // 저장 중 IO 오류 등
 
     // 학습콘텐츠 관련 에러코드
     CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT_NOT_FOUND", "존재하지 않는 학습 콘텐츠입니다."), // 학습 콘텐츠 조회 실패
-    CONTENT_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "CONTENT_IDS_REQUIRED", "삭제할 학습 콘텐츠를 선택해주세요."); // 학습 콘텐츠 일괄 삭제 시 아무것도 선택하지 않거나 비어있을 때 삭제 요청을 시도한 경우
+    CONTENT_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "CONTENT_IDS_REQUIRED", "삭제할 학습 콘텐츠를 선택해주세요."), // 학습 콘텐츠 일괄 삭제 시 아무것도 선택하지 않거나 비어있을 때 삭제 요청을 시도한 경우
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."), // 학습 카테고리 조회 실패
+    MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."); // 콘텐츠 등록 시 미디어 누락
 
     private final HttpStatus httpStatus;
     private final String code;
