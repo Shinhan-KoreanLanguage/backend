@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content.dto;
+package com.daehanforeigner.capstone.domain.learning_content.dto.admin;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;

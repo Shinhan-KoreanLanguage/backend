@@ -1,8 +1,8 @@
 package com.daehanforeigner.capstone.domain.admin.controller;
 
 import com.daehanforeigner.capstone.domain.admin.service.AdminLearningContentService;
-import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
-import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
+import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentRequestDTO;
+import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentResponseDTO;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
