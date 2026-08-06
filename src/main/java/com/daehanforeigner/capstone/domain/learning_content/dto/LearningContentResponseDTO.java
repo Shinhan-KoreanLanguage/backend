@@ -24,6 +24,10 @@ public record LearningContentResponseDTO(
 
         String pronunciationGuide, // 발음 가이드
 
+        String standardPronunciationText, // 표준 발음 표기
+
+        String nativePronunciation, // 모국어 발음 표기
+
         String answerAudioUrl, // 정답 오디오 URL
 
         String answerVideoUrl // 정답 비디오 URL
@@ -40,6 +44,8 @@ public record LearningContentResponseDTO(
                 learningContent.getMeaning(),
                 learningContent.getExampleSentence(),
                 learningContent.getPronunciationGuide(),
+                learningContent.getStandardPronunciationText(),
+                learningContent.getNativePronunciation(),
                 pronunciation.getAnswerAudioUrl(),
                 pronunciation.getAnswerVideoUrl()
         );
