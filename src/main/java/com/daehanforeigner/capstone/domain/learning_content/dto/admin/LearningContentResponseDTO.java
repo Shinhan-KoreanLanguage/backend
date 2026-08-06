@@ -50,5 +50,5 @@ public record LearningContentResponseDTO(
                 pronunciation != null ? pronunciation.getAnswerVideoUrl() : null
         );
     }
-    }
 }
+
