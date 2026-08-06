@@ -84,8 +84,8 @@ public class AdminLearningContentService {
         ContentCategory category = findCategory(request.categoryId());
         LearningContent content = findContent(contentId);
 
-        content.update(category, request.contentType(), request.difficulty(), request.text(),
-                request.meaning(), request.exampleSentence(), request.pronunciationGuide());
+        content.update(category, request.contentType(), request.difficulty(), request.text(), request.meaning(),
+                request.exampleSentence(), request.pronunciationGuide(), request.standardPronunciationText(), request.nativePronunciation());
 
         String audioUrl = (audioFile != null && !audioFile.isEmpty())
                 ? fileService.saveAudio(audioFile, "audio") : null;
