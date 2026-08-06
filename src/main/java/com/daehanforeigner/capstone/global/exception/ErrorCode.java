@@ -47,7 +47,12 @@ public enum ErrorCode {
     CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CONTENT_NOT_FOUND", "존재하지 않는 학습 콘텐츠입니다."), // 학습 콘텐츠 조회 실패
     CONTENT_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "CONTENT_IDS_REQUIRED", "삭제할 학습 콘텐츠를 선택해주세요."), // 학습 콘텐츠 일괄 삭제 시 아무것도 선택하지 않거나 비어있을 때 삭제 요청을 시도한 경우
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."), // 학습 카테고리 조회 실패
-    MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."); // 콘텐츠 등록 시 미디어 누락
+    MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."), // 콘텐츠 등록 시 미디어 누락
+
+    // AI 서버 관련 에러코드
+    AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI_SERVER_ERROR", "발음 분석 서버와 통신할 수 없습니다."), // 연결 실패·타임아웃·4xx/5xx 응답
+    AI_REFERENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI_REFERENCE_NOT_FOUND", "원어민 기준 발음이 등록되지 않았습니다."), // AI 서버에 원어민 발음 기준이 없는 경우
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."); // 저장된 파일을 다시 읽으려 했으나 없는 경우
 
     private final HttpStatus httpStatus;
     private final String code;
