@@ -44,8 +44,15 @@ public class LearningContent {
     @Column(name = "pronunciation_guide") // 발음 가이드
     private String pronunciationGuide;
 
+    @Column(name = "standard_pronunciation_text") // 표준 발음 표기
+    private String standardPronunciationText;
+
+    @Column(name = "native_pronunciation") // 모국어 발음 표기
+    private String nativePronunciation;
+
     // 학습 콘텐츠 정보 수정 처리 (controller단에서는 putMapping으로 처리)
-    public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty, String text, String meaning, String exampleSentence, String pronunciationGuide) {
+    public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty, String text, String meaning,
+                       String exampleSentence, String pronunciationGuide, String standardPronunciationText, String nativePronunciation) {
         this.contentCategory = contentCategory;
         this.contentType = contentType;
         this.difficulty = difficulty;
@@ -53,5 +60,7 @@ public class LearningContent {
         this.meaning = meaning;
         this.exampleSentence = exampleSentence;
         this.pronunciationGuide = pronunciationGuide;
+        this.standardPronunciationText = standardPronunciationText;
+        this.nativePronunciation = nativePronunciation;
     }
 }

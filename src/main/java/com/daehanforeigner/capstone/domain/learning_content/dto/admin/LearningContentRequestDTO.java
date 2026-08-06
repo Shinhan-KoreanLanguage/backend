@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content.dto;
+package com.daehanforeigner.capstone.domain.learning_content.dto.admin;
 
 import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
@@ -25,7 +25,11 @@ public record LearningContentRequestDTO(
 
         String exampleSentence,
 
-        String pronunciationGuide
+        String pronunciationGuide,
+
+        String standardPronunciationText, // 표준 발음 표기
+
+        String nativePronunciation // 모국어 발음 표기
 ) {
         // DTO를 엔티티로 변환하는 메서드
         public LearningContent toEntity(ContentCategory contentCategory) {
@@ -37,6 +41,8 @@ public record LearningContentRequestDTO(
                     .meaning(meaning)
                     .exampleSentence(exampleSentence)
                     .pronunciationGuide(pronunciationGuide)
+                    .standardPronunciationText(standardPronunciationText)
+                    .nativePronunciation(nativePronunciation)
                     .build();
         }
 }

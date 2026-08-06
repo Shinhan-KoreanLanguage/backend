@@ -2,8 +2,8 @@ package com.daehanforeigner.capstone.domain.admin.service;
 
 import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import com.daehanforeigner.capstone.domain.content_category.repository.ContentCategoryRepository;
-import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentRequestDTO;
-import com.daehanforeigner.capstone.domain.learning_content.dto.LearningContentResponseDTO;
+import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentRequestDTO;
+import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentResponseDTO;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
@@ -84,8 +84,8 @@ public class AdminLearningContentService {
         ContentCategory category = findCategory(request.categoryId());
         LearningContent content = findContent(contentId);
 
-        content.update(category, request.contentType(), request.difficulty(), request.text(),
-                request.meaning(), request.exampleSentence(), request.pronunciationGuide());
+        content.update(category, request.contentType(), request.difficulty(), request.text(), request.meaning(),
+                request.exampleSentence(), request.pronunciationGuide(), request.standardPronunciationText(), request.nativePronunciation());
 
         String audioUrl = (audioFile != null && !audioFile.isEmpty())
                 ? fileService.saveAudio(audioFile, "audio") : null;

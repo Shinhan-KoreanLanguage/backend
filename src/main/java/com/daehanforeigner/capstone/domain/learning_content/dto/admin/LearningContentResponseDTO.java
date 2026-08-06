@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.learning_content.dto;
+package com.daehanforeigner.capstone.domain.learning_content.dto.admin;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
@@ -24,6 +24,10 @@ public record LearningContentResponseDTO(
 
         String pronunciationGuide, // 발음 가이드
 
+        String standardPronunciationText, // 표준 발음 표기
+
+        String nativePronunciation, // 모국어 발음 표기
+
         String answerAudioUrl, // 정답 오디오 URL
 
         String answerVideoUrl // 정답 비디오 URL
@@ -32,16 +36,19 @@ public record LearningContentResponseDTO(
     public static LearningContentResponseDTO from(LearningContent learningContent, StandardPronunciation pronunciation) {
         return new LearningContentResponseDTO(
                 learningContent.getContentId(),
-                learningContent.getContentCategory().getCategoryId(),
-                learningContent.getContentCategory().getName(),
+                learningContent.getContentCategory() != null ? learningContent.getContentCategory().getCategoryId() : null,
+                learningContent.getContentCategory() != null ? learningContent.getContentCategory().getName() : null,
                 learningContent.getContentType(),
                 learningContent.getDifficulty(),
                 learningContent.getText(),
                 learningContent.getMeaning(),
                 learningContent.getExampleSentence(),
                 learningContent.getPronunciationGuide(),
-                pronunciation.getAnswerAudioUrl(),
-                pronunciation.getAnswerVideoUrl()
+                learningContent.getStandardPronunciationText(),
+                learningContent.getNativePronunciation(),
+                pronunciation != null ? pronunciation.getAnswerAudioUrl() : null,
+                pronunciation != null ? pronunciation.getAnswerVideoUrl() : null
         );
+    }
     }
 }
