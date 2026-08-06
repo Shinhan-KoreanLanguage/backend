@@ -32,7 +32,7 @@ public class FileService {
     // 허용 확장자 (이미지만)
     private static final List<String> IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png", "gif"); // 이미지 (프로필)
 
-    private static final List<String> AUDIO_EXTENSIONS = List.of("mp3", "wav", "m4a"); // 오디오 (발음)
+    private static final List<String> AUDIO_EXTENSIONS = List.of("mp3", "wav", "m4a", "webm"); // 오디오 (발음) — webm은 브라우저 MediaRecorder 기본 출력
 
     private static final List<String> VIDEO_EXTENSIONS = List.of("mp4","webm", "avi", "mov"); // 비디오 (학습 영상)
 
