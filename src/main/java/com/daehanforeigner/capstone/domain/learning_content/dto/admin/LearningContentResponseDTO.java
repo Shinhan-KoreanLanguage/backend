@@ -36,8 +36,8 @@ public record LearningContentResponseDTO(
     public static LearningContentResponseDTO from(LearningContent learningContent, StandardPronunciation pronunciation) {
         return new LearningContentResponseDTO(
                 learningContent.getContentId(),
-                learningContent.getContentCategory().getCategoryId(),
-                learningContent.getContentCategory().getName(),
+                learningContent.getContentCategory() != null ? learningContent.getContentCategory().getCategoryId() : null,
+                learningContent.getContentCategory() != null ? learningContent.getContentCategory().getName() : null,
                 learningContent.getContentType(),
                 learningContent.getDifficulty(),
                 learningContent.getText(),
@@ -46,8 +46,9 @@ public record LearningContentResponseDTO(
                 learningContent.getPronunciationGuide(),
                 learningContent.getStandardPronunciationText(),
                 learningContent.getNativePronunciation(),
-                pronunciation.getAnswerAudioUrl(),
-                pronunciation.getAnswerVideoUrl()
+                pronunciation != null ? pronunciation.getAnswerAudioUrl() : null,
+                pronunciation != null ? pronunciation.getAnswerVideoUrl() : null
         );
+    }
     }
 }
