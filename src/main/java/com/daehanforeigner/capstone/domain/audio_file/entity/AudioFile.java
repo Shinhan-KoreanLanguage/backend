@@ -6,11 +6,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 @Table(name = "audio_file")
 public class AudioFile extends GlobalEntity {
 
@@ -31,4 +33,7 @@ public class AudioFile extends GlobalEntity {
 
     @Column(name = "duration_ms") // 오디오 파일 길이 (밀리초 단위)
     private int durationMs;
+
+    @Column(name = "webcamrecord_url") // 웹캠 녹화 URL
+    private String webcamRecordUrl;
 }
