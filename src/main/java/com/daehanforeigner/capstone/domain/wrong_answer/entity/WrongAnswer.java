@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 @Table(name = "wrong_answer")
 public class WrongAnswer extends GlobalEntity {
 
@@ -38,5 +40,16 @@ public class WrongAnswer extends GlobalEntity {
 
     @Column(name = "last_attempted_at") // 마지막 시도 날짜
     private LocalDateTime lastAttemptedAt;
-}
 
+    // 재시도 결과 반영 — 틀리면 횟수를 올리고, 맞히면 해결 처리
+    public void recordAttempt(boolean passed) {
+        this.lastAttemptedAt = LocalDateTime.now();
+
+        if (passed) {
+            this.isSolved = true;
+        } else {
+            this.wrongCount++;
+            this.isSolved = false;
+        }
+    }
+}
