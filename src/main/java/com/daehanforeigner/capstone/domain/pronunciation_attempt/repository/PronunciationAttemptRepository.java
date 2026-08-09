@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.audio_file.repository;
+package com.daehanforeigner.capstone.domain.pronunciation_attempt.repository;
 
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;
