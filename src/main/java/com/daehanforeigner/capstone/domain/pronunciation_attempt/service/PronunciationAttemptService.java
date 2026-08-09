@@ -1,0 +1,200 @@
+package com.daehanforeigner.capstone.domain.pronunciation_attempt.service;
+
+import com.daehanforeigner.capstone.domain.audio_file.entity.AudioFile;
+import com.daehanforeigner.capstone.domain.audio_file.repository.AudioFileRepository;
+import com.daehanforeigner.capstone.domain.feedback.entity.Feedback;
+import com.daehanforeigner.capstone.domain.feedback.entity.FeedbackLevel;
+import com.daehanforeigner.capstone.domain.feedback.entity.FeedbackType;
+import com.daehanforeigner.capstone.domain.feedback.repository.FeedbackRepository;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
+import com.daehanforeigner.capstone.domain.phoneme_score.entity.PhonemeScore;
+import com.daehanforeigner.capstone.domain.phoneme_score.repository.PhonemeScoreRepository;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.repository.PronunciationAttemptRepository;
+import com.daehanforeigner.capstone.domain.user.entity.User;
+import com.daehanforeigner.capstone.domain.user.repository.UserRepository;
+import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
+import com.daehanforeigner.capstone.domain.wrong_answer.repository.WrongAnswerRepository;
+import com.daehanforeigner.capstone.global.ai.PronunciationAiClient;
+import com.daehanforeigner.capstone.global.exception.CustomException;
+import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import com.daehanforeigner.capstone.global.storage.FileService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.JsonNode;
+
+import java.time.LocalDateTime;
+
+// 발음 시도(녹음 업로드 → AI 분석 → 결과 저장) 담당
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class PronunciationAttemptService {
+
+    private final PronunciationAttemptRepository pronunciationAttemptRepository;
+
+    private final AudioFileRepository audioFileRepository;
+
+    private final PhonemeScoreRepository phonemeScoreRepository;
+
+    private final FeedbackRepository feedbackRepository;
+
+    private final WrongAnswerRepository wrongAnswerRepository;
+
+    private final LearningContentRepository learningContentRepository;
+
+    private final UserRepository userRepository;
+
+    private final FileService fileService;
+
+    private final PronunciationAiClient aiClient;
+
+    // 녹음 종료 시 호출 — 파일 저장 → AI 분석 → 결과 저장
+    @Transactional
+    public Long createAttempt(Long userId, Long contentId,
+                              MultipartFile audio, MultipartFile video, Integer durationMs) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        LearningContent content = learningContentRepository.findById(contentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
+
+        // 오디오는 필수 — 없으면 분석 자체가 불가능하다
+        if (audio == null || audio.isEmpty()) {
+            throw new CustomException(ErrorCode.EMPTY_FILE);
+        }
+
+        // 1. 사용자 녹음·녹화 저장 (영상은 웹캠 거부 시 없을 수 있음)
+        String audioUrl = fileService.saveAudio(audio, "attempt/audio");
+        String videoUrl = (video != null && !video.isEmpty())
+                ? fileService.saveVideo(video, "attempt/video")
+                : null;
+
+        // 2. AI 분석 — 방금 저장한 파일을 다시 읽어 전송한다.
+        //    실패하면 예외가 던져지고 아래 저장이 전부 롤백된다
+        JsonNode result = aiClient.analyze(
+                content.getText(),
+                fileService.loadAsResource(audioUrl),
+                videoUrl != null ? fileService.loadAsResource(videoUrl) : null);
+
+        boolean passed = result.path("is_correct").asBoolean(false);
+
+        // 3. 시도 기록 저장 (분석 결과를 담아 한 번에)
+        PronunciationAttempt attempt = pronunciationAttemptRepository.save(
+                PronunciationAttempt.builder()
+                        .user(user)
+                        .learningContent(content)
+                        .recognizedText(result.path("recognized_text").asText(null))
+                        .voiceScore(nullableDouble(result, "stt_accuracy"))
+                        .lipScore(nullableDouble(result, "mouth_accuracy")) // 영상 없으면 null
+                        .pitchScore(nullableDouble(result, "pitch_accuracy"))
+                        .accuracy(result.path("final_accuracy").asDouble(0.0))
+                        .isPassed(passed)
+                        .userPitchData(result.path("pitch_curve").path("user").toString())
+                        .pitchHighlightSegments(result.path("pitch_curve").path("highlight_segments").toString())
+                        .lengthMismatch(result.path("pitch_curve").path("length_mismatch").asBoolean(false))
+                        .build());
+
+        // 4. 업로드한 미디어 기록
+        audioFileRepository.save(AudioFile.builder()
+                .attempt(attempt)
+                .fileUrl(audioUrl)
+                .webcamRecordUrl(videoUrl)
+                .fileSize((int) audio.getSize())
+                .durationMs(durationMs != null ? durationMs : 0)
+                .build());
+
+        // 5. 음절별 점수 (파형 구간 분할·추천 연습에 사용)
+        for (JsonNode syllable : result.path("syllable_scores")) {
+            phonemeScoreRepository.save(PhonemeScore.builder()
+                    .attempt(attempt)
+                    .phoneme(syllable.path("syllable").asText(null))
+                    .score(nullableDouble(syllable, "score"))
+                    .isWeak(syllable.path("is_weak").asBoolean(false))
+                    .startTime(nullableDouble(syllable, "start_time"))
+                    .endTime(nullableDouble(syllable, "end_time"))
+                    .build());
+        }
+
+        // 6. 피드백 3항목 생성 — AI는 점수만 주므로 문구·등급은 우리가 만든다
+        saveFeedbacks(attempt, user, result);
+
+        // 7. 오답 기록 갱신
+        updateWrongAnswer(user, content, passed);
+
+        return attempt.getAttemptId();
+    }
+
+    // 화면의 상세 피드백 3항목을 점수 구간으로 만들어 저장
+    private void saveFeedbacks(PronunciationAttempt attempt, User user, JsonNode result) {
+        double stt = result.path("stt_accuracy").asDouble(0.0);
+        double pitch = result.path("pitch_accuracy").asDouble(0.0);
+        boolean lengthMismatch = result.path("pitch_curve").path("length_mismatch").asBoolean(false);
+
+        FeedbackLevel sttLevel = levelOf(stt);
+        saveFeedback(attempt, user, FeedbackType.ACCURACY, sttLevel,
+                sttLevel == FeedbackLevel.GOOD
+                        ? "대부분의 발음이 정확해요!"
+                        : "제시된 단어와 다르게 들려요. 또박또박 발음해 보세요.");
+
+        FeedbackLevel pitchLevel = levelOf(pitch);
+        saveFeedback(attempt, user, FeedbackType.INTONATION, pitchLevel,
+                pitchLevel == FeedbackLevel.GOOD
+                        ? "억양이 자연스러워요!"
+                        : "억양의 높낮이가 원어민과 달라요.");
+
+        saveFeedback(attempt, user, FeedbackType.LENGTH,
+                lengthMismatch ? FeedbackLevel.WEAK : FeedbackLevel.GOOD,
+                lengthMismatch ? "발음 길이가 원어민과 많이 달라요." : "발음 길이가 적절해요!");
+    }
+
+    private void saveFeedback(PronunciationAttempt attempt, User user,
+                              FeedbackType type, FeedbackLevel level, String content) {
+        feedbackRepository.save(Feedback.builder()
+                .attempt(attempt)
+                .feedbackType(type)
+                .level(level)
+                .content(content)
+                .language(user.getNativeLanguage())
+                .build());
+    }
+
+    private FeedbackLevel levelOf(double score) {
+        if (score >= 80) {
+            return FeedbackLevel.GOOD;
+        }
+        if (score >= 60) {
+            return FeedbackLevel.NORMAL;
+        }
+        return FeedbackLevel.WEAK;
+    }
+
+    // 오답 기록은 회원·콘텐츠당 1건만 두고 갱신한다
+    private void updateWrongAnswer(User user, LearningContent content, boolean passed) {
+        wrongAnswerRepository.findByUserAndLearningContent(user, content)
+                .ifPresentOrElse(
+                        wrongAnswer -> wrongAnswer.recordAttempt(passed), // 더티 체킹으로 반영
+                        () -> {
+                            // 처음부터 맞히면 오답 기록을 만들 필요가 없다
+                            if (!passed) {
+                                wrongAnswerRepository.save(WrongAnswer.builder()
+                                        .user(user)
+                                        .learningContent(content)
+                                        .wrongCount(1)
+                                        .isSolved(false)
+                                        .lastAttemptedAt(LocalDateTime.now())
+                                        .build());
+                            }
+                        });
+    }
+
+    // null이 올 수 있는 점수 (영상 미전송 시 mouth_accuracy 등)
+    private Double nullableDouble(JsonNode node, String field) {
+        JsonNode value = node.path(field);
+        return (value.isMissingNode() || value.isNull()) ? null : value.asDouble();
+    }
+}
