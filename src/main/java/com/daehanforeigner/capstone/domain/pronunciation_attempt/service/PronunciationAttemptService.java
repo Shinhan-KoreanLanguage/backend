@@ -10,8 +10,11 @@ import com.daehanforeigner.capstone.domain.learning_content.entity.LearningConte
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
 import com.daehanforeigner.capstone.domain.phoneme_score.entity.PhonemeScore;
 import com.daehanforeigner.capstone.domain.phoneme_score.repository.PhonemeScoreRepository;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.dto.AttemptResultResponseDTO;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.repository.PronunciationAttemptRepository;
+import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
+import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
 import com.daehanforeigner.capstone.domain.user.entity.User;
 import com.daehanforeigner.capstone.domain.user.repository.UserRepository;
 import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
@@ -28,7 +31,7 @@ import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 
-// 발음 시도(녹음 업로드 → AI 분석 → 결과 저장) 담당
+// 발음 시도(녹음 업로드 → AI 분석 → 결과 저장·조회) 담당
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -45,6 +48,8 @@ public class PronunciationAttemptService {
     private final WrongAnswerRepository wrongAnswerRepository;
 
     private final LearningContentRepository learningContentRepository;
+
+    private final StandardPronunciationRepository standardPronunciationRepository;
 
     private final UserRepository userRepository;
 
@@ -81,6 +86,7 @@ public class PronunciationAttemptService {
                 fileService.loadAsResource(audioUrl),
                 videoUrl != null ? fileService.loadAsResource(videoUrl) : null);
 
+        JsonNode pitchCurve = result.path("pitch_curve");
         boolean passed = result.path("is_correct").asBoolean(false);
 
         // 3. 시도 기록 저장 (분석 결과를 담아 한 번에)
@@ -88,15 +94,15 @@ public class PronunciationAttemptService {
                 PronunciationAttempt.builder()
                         .user(user)
                         .learningContent(content)
-                        .recognizedText(result.path("recognized_text").asText(null))
+                        .recognizedText(textOrNull(result.path("recognized_text")))
                         .voiceScore(nullableDouble(result, "stt_accuracy"))
                         .lipScore(nullableDouble(result, "mouth_accuracy")) // 영상 없으면 null
                         .pitchScore(nullableDouble(result, "pitch_accuracy"))
                         .accuracy(result.path("final_accuracy").asDouble(0.0))
                         .isPassed(passed)
-                        .userPitchData(result.path("pitch_curve").path("user").toString())
-                        .pitchHighlightSegments(result.path("pitch_curve").path("highlight_segments").toString())
-                        .lengthMismatch(result.path("pitch_curve").path("length_mismatch").asBoolean(false))
+                        .userPitchData(jsonOrNull(pitchCurve.path("user")))
+                        .pitchHighlightSegments(jsonOrNull(pitchCurve.path("highlight_segments")))
+                        .lengthMismatch(pitchCurve.path("length_mismatch").asBoolean(false))
                         .build());
 
         // 4. 업로드한 미디어 기록
@@ -112,7 +118,7 @@ public class PronunciationAttemptService {
         for (JsonNode syllable : result.path("syllable_scores")) {
             phonemeScoreRepository.save(PhonemeScore.builder()
                     .attempt(attempt)
-                    .phoneme(syllable.path("syllable").asText(null))
+                    .phoneme(textOrNull(syllable.path("syllable")))
                     .score(nullableDouble(syllable, "score"))
                     .isWeak(syllable.path("is_weak").asBoolean(false))
                     .startTime(nullableDouble(syllable, "start_time"))
@@ -129,27 +135,56 @@ public class PronunciationAttemptService {
         return attempt.getAttemptId();
     }
 
+    // 피드백 화면용 결과 조회
+    public AttemptResultResponseDTO getAttemptResult(Long userId, Long attemptId) {
+        PronunciationAttempt attempt = pronunciationAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ATTEMPT_NOT_FOUND));
+
+        // 남의 시도는 존재 자체를 알리지 않도록 404로 응답한다
+        if (!attempt.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.ATTEMPT_NOT_FOUND);
+        }
+
+        // 원어민 음성·피치는 화면에서 사용자 것과 나란히 비교하는 데 쓰인다
+        StandardPronunciation pronunciation = standardPronunciationRepository
+                .findByLearningContent(attempt.getLearningContent())
+                .orElse(null);
+
+        return AttemptResultResponseDTO.from(
+                attempt,
+                audioFileRepository.findByAttempt(attempt).orElse(null),
+                pronunciation,
+                phonemeScoreRepository.findAllByAttempt(attempt),
+                feedbackRepository.findAllByAttempt(attempt));
+    }
+
     // 화면의 상세 피드백 3항목을 점수 구간으로 만들어 저장
     private void saveFeedbacks(PronunciationAttempt attempt, User user, JsonNode result) {
         double stt = result.path("stt_accuracy").asDouble(0.0);
         double pitch = result.path("pitch_accuracy").asDouble(0.0);
         boolean lengthMismatch = result.path("pitch_curve").path("length_mismatch").asBoolean(false);
 
-        FeedbackLevel sttLevel = levelOf(stt);
-        saveFeedback(attempt, user, FeedbackType.ACCURACY, sttLevel,
-                sttLevel == FeedbackLevel.GOOD
-                        ? "대부분의 발음이 정확해요!"
-                        : "제시된 단어와 다르게 들려요. 또박또박 발음해 보세요.");
-
-        FeedbackLevel pitchLevel = levelOf(pitch);
-        saveFeedback(attempt, user, FeedbackType.INTONATION, pitchLevel,
-                pitchLevel == FeedbackLevel.GOOD
-                        ? "억양이 자연스러워요!"
-                        : "억양의 높낮이가 원어민과 달라요.");
-
+        saveFeedback(attempt, user, FeedbackType.ACCURACY, levelOf(stt), accuracyMessage(levelOf(stt)));
+        saveFeedback(attempt, user, FeedbackType.INTONATION, levelOf(pitch), intonationMessage(levelOf(pitch)));
         saveFeedback(attempt, user, FeedbackType.LENGTH,
                 lengthMismatch ? FeedbackLevel.WEAK : FeedbackLevel.GOOD,
-                lengthMismatch ? "발음 길이가 원어민과 많이 달라요." : "발음 길이가 적절해요!");
+                lengthMismatch ? "발음 길이가 원어민과 많이 달라요. 천천히 따라 읽어 보세요." : "발음 길이가 적절해요!");
+    }
+
+    private String accuracyMessage(FeedbackLevel level) {
+        return switch (level) {
+            case GOOD -> "대부분의 발음이 정확해요!";
+            case NORMAL -> "대체로 알아들을 수 있지만 일부 소리가 흐려요.";
+            case WEAK -> "제시된 단어와 다르게 들려요. 또박또박 발음해 보세요.";
+        };
+    }
+
+    private String intonationMessage(FeedbackLevel level) {
+        return switch (level) {
+            case GOOD -> "억양이 자연스러워요!";
+            case NORMAL -> "억양이 조금 밋밋해요. 높낮이를 살려 보세요.";
+            case WEAK -> "억양의 높낮이가 원어민과 많이 달라요.";
+        };
     }
 
     private void saveFeedback(PronunciationAttempt attempt, User user,
@@ -196,5 +231,14 @@ public class PronunciationAttemptService {
     private Double nullableDouble(JsonNode node, String field) {
         JsonNode value = node.path(field);
         return (value.isMissingNode() || value.isNull()) ? null : value.asDouble();
+    }
+
+    // JSON 컬럼에 넣을 값 — 필드가 없으면 빈 문자열 대신 null
+    private String jsonOrNull(JsonNode node) {
+        return (node.isMissingNode() || node.isNull()) ? null : node.toString();
+    }
+
+    private String textOrNull(JsonNode node) {
+        return (node.isMissingNode() || node.isNull()) ? null : node.asText();
     }
 }
