@@ -61,11 +61,14 @@ public class FileService {
         // 2. urlPrefix를 떼면 "/audio/uuid.mp3" 형태가 남으므로 앞의 "/"까지 제거
         String relativePath = fileUrl.substring(urlPrefix.length()).replaceFirst("^/", "");
 
-        // 3. 저장 루트(uploadDir) 기준으로 실제 경로 조립
-        Path path = Paths.get(uploadDir).toAbsolutePath().resolve(relativePath);
+        // 3. 저장 루트(uploadDir) 기준으로 실제 경로 조립 (normalize로 "../" 정리)
+        Path root = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path path = root.resolve(relativePath).normalize();
 
-        // 4. 파일이 실제로 존재하는지 확인 (DB에는 URL이 남았지만 파일이 지워진 경우 방어)
-        if (!Files.exists(path)) {
+        // 4. 저장 루트 안의 실제 파일인지 확인
+        //    - startsWith: "../"로 루트 밖의 파일을 읽는 경로 탈출 차단
+        //    - isRegularFile: 파일이 지워졌거나 디렉터리를 가리키는 경우 방어
+        if (!path.startsWith(root) || !Files.isRegularFile(path)) {
             throw new CustomException(ErrorCode.FILE_NOT_FOUND);
         }
 
