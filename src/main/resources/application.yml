@@ -28,8 +28,10 @@ spring:
 
 custom:
   # AI 분석 서버 (FastAPI)
+  # 사용자 음성·영상이 전송되는 곳이라 팀 서버 주소를 기본값으로 두지 않는다.
+  # 환경변수 미설정 시 로컬로 붙어 실패하므로, 각자 .env에 AI_SERVER_URL을 지정할 것
   ai:
-    base-url: ${AI_SERVER_URL:http://xujong2.iptime.org:8000}
+    base-url: ${AI_SERVER_URL:http://localhost:8000}
 
   # 파일 저장 설정 (현재 로컬 스토리지, 추후 S3로 교체 예정)
   file:
