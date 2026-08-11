@@ -46,4 +46,9 @@ public class StandardPronunciation extends GlobalEntity {
     public void updateVideoUrl(String answerVideoUrl) {
         this.answerVideoUrl = answerVideoUrl;
     }
+
+    // AI 서버에서 추출한 원어민 피치 곡선 저장
+    public void updateNativePitchData(String nativePitchData) {
+        this.nativePitchData = nativePitchData;
+    }
 }
