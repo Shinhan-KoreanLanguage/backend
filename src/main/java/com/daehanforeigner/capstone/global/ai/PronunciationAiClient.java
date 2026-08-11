@@ -107,11 +107,14 @@ public class PronunciationAiClient {
         }
     }
 
-    // 404는 "서버 장애"가 아니라 "원어민 기준 미등록"이라 조치가 다르므로 구분한다
+    // AI 서버 응답 코드별로 조치가 다르므로 구체적인 에러코드로 변환
     private CustomException toCustomException(RestClientResponseException e) {
         if (e.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
-            return new CustomException(ErrorCode.AI_REFERENCE_NOT_FOUND);
+            return new CustomException(ErrorCode.AI_REFERENCE_NOT_FOUND); // 기준 미등록 → 관리자가 등록
         }
-        return new CustomException(ErrorCode.AI_SERVER_ERROR);
+        if (e.getStatusCode().isSameCodeAs(HttpStatus.UNPROCESSABLE_ENTITY)) {
+            return new CustomException(ErrorCode.AI_MEDIA_ANALYSIS_FAILED); // 파일 문제 → 파일 교체
+        }
+        return new CustomException(ErrorCode.AI_SERVER_ERROR); // 그 외 → AI 팀 확인
     }
 }
