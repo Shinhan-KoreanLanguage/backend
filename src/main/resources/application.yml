@@ -63,6 +63,7 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha # API 그룹 알파벳 순으로 정렬
     operations-sorter: alpha # 각 그룹 안의 API를 알파벳 순으로 정렬
+    persist-authorization: true # 새로고침해도 입력한 토큰 유지 (프론트 편의)
   api-docs:
     default-consumes-media-type: application/json # 요청 기본 타입을 JSON으로 설정
     default-produces-media-type: application/json # 응답 기본 타입을 JSON으로 설정
