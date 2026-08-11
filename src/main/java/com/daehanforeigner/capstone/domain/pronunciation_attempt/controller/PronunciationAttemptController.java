@@ -1,5 +1,6 @@
 package com.daehanforeigner.capstone.domain.pronunciation_attempt.controller;
 
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.dto.AttemptResultResponseDTO;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.service.PronunciationAttemptService;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,14 @@ public class PronunciationAttemptController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(RsData.success(
                         pronunciationAttemptService.createAttempt(userId, contentId, audio, video, durationMs)));
+    }
+
+    // 피드백 화면 진입 시 호출 — 저장된 분석 결과 조회
+    @GetMapping("/attempts/{attemptId}")
+    public ResponseEntity<RsData<AttemptResultResponseDTO>> getAttemptResult(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable("attemptId") Long attemptId) {
+        return ResponseEntity.ok(RsData.success(
+                pronunciationAttemptService.getAttemptResult(userId, attemptId)));
     }
 }
