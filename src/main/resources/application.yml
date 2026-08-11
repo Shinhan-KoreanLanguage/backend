@@ -9,11 +9,17 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    web:
+      pageable:
+        max-page-size: 100 # 클라이언트가 요청 가능한 최대 페이지 사이즈
+        default-page-size: 20 # 기본 페이지 사이즈
+
   # 파일 업로드(multipart) 요청 크기 제한
   servlet:
     multipart:
-      max-file-size: 5MB      # 파일 1개 최대 크기
-      max-request-size: 10MB  # 요청 전체 최대 크기
+      max-file-size: 50MB      # 파일 1개 최대 크기
+      max-request-size: 100MB  # 요청 전체 최대 크기
 
   # JSON → enum 변환 시 대소문자 무시 (예: "kr" → KR) — 회원가입/프로필수정 일관 처리
   jackson:
@@ -21,6 +27,12 @@ spring:
       accept-case-insensitive-enums: true
 
 custom:
+  # AI 분석 서버 (FastAPI)
+  # 사용자 음성·영상이 전송되는 곳이라 팀 서버 주소를 기본값으로 두지 않는다.
+  # 환경변수 미설정 시 로컬로 붙어 실패하므로, 각자 .env에 AI_SERVER_URL을 지정할 것
+  ai:
+    base-url: ${AI_SERVER_URL:http://localhost:8000}
+
   # 파일 저장 설정 (현재 로컬 스토리지, 추후 S3로 교체 예정)
   file:
     upload-dir: ${FILE_UPLOAD_DIR:uploads}                # 로컬 저장 루트 폴더 (앱 실행 위치 기준 상대경로)

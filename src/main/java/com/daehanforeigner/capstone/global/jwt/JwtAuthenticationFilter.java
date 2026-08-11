@@ -27,8 +27,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // 클라이
 
         if (token != null && jwtProvider.validateToken(token)) {
             Long userId = jwtProvider.getUserId(token);
+            String role = jwtProvider.getRole(token);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
 
             SecurityContextHolder.getContext().setAuthentication(authentication); // SecurityContext에 인증 정보 저장 -> 요청을 통해 인증된 사용자라고 스프링에 알리는 방법
         }

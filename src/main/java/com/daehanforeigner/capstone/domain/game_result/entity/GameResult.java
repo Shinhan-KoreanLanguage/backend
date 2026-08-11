@@ -1,6 +1,6 @@
 package com.daehanforeigner.capstone.domain.game_result.entity;
 
-import com.daehanforeigner.capstone.domain.content_category.ContentCategory;
+import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import com.daehanforeigner.capstone.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

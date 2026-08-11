@@ -69,8 +69,8 @@ public class UserAuthService {
             throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtProvider.createAccessToken(user.getUserId());
-        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
+        String accessToken = jwtProvider.createAccessToken(user.getUserId(), user.getRole());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserId(), user.getRole());
 
         user.updateRefreshToken(refreshToken);
 
@@ -118,7 +118,7 @@ public class UserAuthService {
         }
 
         // 4. 새 액세스 토큰 발급 (리프레시는 그대로 유지)
-        String newAccessToken = jwtProvider.createAccessToken(userId);
+        String newAccessToken = jwtProvider.createAccessToken(userId, user.getRole());
         return new LoginResponseDTO(newAccessToken, refreshToken);
     }
 

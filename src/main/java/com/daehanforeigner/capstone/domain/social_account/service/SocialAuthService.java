@@ -55,8 +55,8 @@ public class SocialAuthService {
         }
 
         // [4] 우리 서비스의 JWT 발급 — 여기부터는 로컬 login()과 완전히 동일
-        String accessToken = jwtProvider.createAccessToken(user.getUserId());
-        String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
+        String accessToken = jwtProvider.createAccessToken(user.getUserId(), user.getRole());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUserId(), user.getRole());
         user.updateRefreshToken(refreshToken); // 변경 감지(dirty checking)로 UPDATE
 
         return new LoginResponseDTO(accessToken, refreshToken);

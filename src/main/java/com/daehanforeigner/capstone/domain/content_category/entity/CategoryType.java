@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.content_category;
+package com.daehanforeigner.capstone.domain.content_category.entity;
 
 public enum CategoryType {
     BASIC, // 기본 학습

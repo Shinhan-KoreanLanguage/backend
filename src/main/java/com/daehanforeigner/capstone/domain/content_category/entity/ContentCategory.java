@@ -1,4 +1,4 @@
-package com.daehanforeigner.capstone.domain.content_category;
+package com.daehanforeigner.capstone.domain.content_category.entity;
 
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
