@@ -1,5 +1,6 @@
 package com.daehanforeigner.capstone.domain.learning_content.repository;
 
+import com.daehanforeigner.capstone.domain.content_category.entity.CategoryType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
@@ -26,4 +27,28 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
                                          @Param("difficulty") Difficulty difficulty,
                                          @Param("keyword") String keyword,
                                          Pageable pageable);
+
+    // 회원용 목록 조회: 카테고리·유형·난이도·학습 상태 필터(null이면 무시)
+    @Query("SELECT c FROM LearningContent c " +
+            "WHERE (:categoryType IS NULL OR c.contentCategory.type = :categoryType) " +
+            "AND (:categoryId IS NULL OR c.contentCategory.categoryId = :categoryId) " +
+            "AND (:contentType IS NULL OR c.contentType = :contentType) " +
+            "AND (:difficulty IS NULL OR c.difficulty = :difficulty) " +
+            "AND (:status IS NULL " +
+            "     OR (:status = 'NOT_STARTED' AND NOT EXISTS " +
+            "         (SELECT 1 FROM PronunciationAttempt a " +
+            "          WHERE a.learningContent = c AND a.user.userId = :userId)) " +
+            "     OR (:status = 'WRONG' AND EXISTS " +
+            "         (SELECT 1 FROM WrongAnswer w " +
+            "          WHERE w.learningContent = c AND w.user.userId = :userId AND w.isSolved = false)) " +
+            "     OR (:status = 'COMPLETED' AND EXISTS " +
+            "         (SELECT 1 FROM PronunciationAttempt a " +
+            "          WHERE a.learningContent = c AND a.user.userId = :userId AND a.isPassed = true)))")
+    Page<LearningContent> searchForUser(@Param("userId") Long userId,
+                                        @Param("categoryType") CategoryType categoryType,
+                                        @Param("categoryId") Long categoryId,
+                                        @Param("contentType") ContentType contentType,
+                                        @Param("difficulty") Difficulty difficulty,
+                                        @Param("status") String status,
+                                        Pageable pageable);
 }
