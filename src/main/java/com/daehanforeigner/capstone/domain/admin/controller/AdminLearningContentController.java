@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -61,6 +62,8 @@ public class AdminLearningContentController {
             @RequestParam(value = "difficulty", required = false) Difficulty difficulty,
             @Parameter(description = "검색어 (선택) — 학습 텍스트·발음 가이드 부분 일치", example = "사과")
             @RequestParam(value = "keyword", required = false) String keyword,
+            // @ParameterObject가 있어야 Swagger가 page·size·sort 세 개의 쿼리 파라미터로 펼쳐 보여준다
+            @ParameterObject
             @PageableDefault(size = 20, sort = "contentId", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
