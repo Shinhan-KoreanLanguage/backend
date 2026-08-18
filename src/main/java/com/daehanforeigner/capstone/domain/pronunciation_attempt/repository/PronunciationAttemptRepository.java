@@ -1,11 +1,14 @@
 package com.daehanforeigner.capstone.domain.pronunciation_attempt.repository;
 
+import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface PronunciationAttemptRepository extends JpaRepository<PronunciationAttempt, Long> {
@@ -21,4 +24,22 @@ public interface PronunciationAttemptRepository extends JpaRepository<Pronunciat
             "WHERE a.user.userId = :userId AND a.learningContent IN :contents AND a.isPassed = true")
     List<Long> findPassedContentIds(@Param("userId") Long userId,
                                     @Param("contents") List<LearningContent> contents);
+
+    // 학습한 단어·문장 수. 여러 번 시도해서 성공해도 한 번만 카운트하기 위해 DISTINCT를 사용
+    @Query("SELECT COUNT(DISTINCT a.learningContent.contentId) FROM PronunciationAttempt a " +
+            "WHERE a.user.userId = :userId AND a.learningContent.contentType IN :contentTypes")
+    long countDistinctContentsByType(@Param("userId") Long userId,
+                                     @Param("contentTypes") Collection<ContentType> contentTypes);
+
+    // 학습일수·연속 학습 계산용
+    @Query("SELECT a.createdAt FROM PronunciationAttempt a " +
+            "WHERE a.user.userId = :userId ORDER BY a.createdAt DESC")
+    List<LocalDateTime> findAttemptTimesDesc(@Param("userId") Long userId);
+
+    // 기간별 평균 정확도. 해당 기간에 기록이 없으면 null이 반환
+    @Query("SELECT AVG(a.accuracy) FROM PronunciationAttempt a " +
+            "WHERE a.user.userId = :userId AND a.createdAt >= :from AND a.createdAt < :to")
+    Double findAverageAccuracy(@Param("userId") Long userId,
+                               @Param("from") LocalDateTime from,
+                               @Param("to") LocalDateTime to);
 }
