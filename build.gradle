@@ -13,6 +13,12 @@ java {
 	}
 }
 
+// 컴파일된 클래스에 파라미터 이름을 남긴다.
+// 없으면 @PathVariable/@RequestParam 이름 생략 시 500이 나고, Swagger에도 arg0, arg1로 표시된다
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs << '-parameters'
+}
+
 repositories {
 	mavenCentral()
 }

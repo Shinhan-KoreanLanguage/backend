@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -76,6 +77,8 @@ public class StudyContentController {
             @Parameter(description = "학습 상태", example = "WRONG")
             @RequestParam(value = "status", required = false) StudyStatus status,
 
+            // @ParameterObject가 있어야 Swagger가 page·size·sort 세 개의 쿼리 파라미터로 펼쳐 보여준다
+            @ParameterObject
             @PageableDefault(size = 20, sort = "contentId", direction = Sort.Direction.ASC)
             Pageable pageable) {
 
