@@ -44,10 +44,14 @@ public class HomeService {
         LocalDateTime nextWeekStart = thisWeekStart.plusWeeks(1);
         LocalDateTime lastWeekStart = thisWeekStart.minusWeeks(1);
 
+        // 이번 주는 기록이 없어도 0으로 본다 ("아직 연습 안 함 = 0%"는 자연스럽다)
         double weeklyAccuracy = averageOrZero(
                 pronunciationAttemptRepository.findAverageAccuracy(userId, thisWeekStart, nextWeekStart));
-        double lastWeekAccuracy = averageOrZero(
-                pronunciationAttemptRepository.findAverageAccuracy(userId, lastWeekStart, thisWeekStart));
+
+        // 지난주는 null을 그대로 살린다. 0으로 바꾸면 비교 대상이 없는데도
+        // 이번 주 점수만큼 상승한 것으로 표시되어 신규 회원에게 잘못된 정보가 된다
+        Double lastWeekAccuracy =
+                pronunciationAttemptRepository.findAverageAccuracy(userId, lastWeekStart, thisWeekStart);
 
         return new HomeSummaryResponseDTO(
                 learnedWordCount,
@@ -55,7 +59,7 @@ public class HomeService {
                 studyDates.size(),
                 calculateStreak(studyDates),
                 round(weeklyAccuracy),
-                round(weeklyAccuracy - lastWeekAccuracy)
+                lastWeekAccuracy != null ? round(weeklyAccuracy - lastWeekAccuracy) : null
         );
     }
 

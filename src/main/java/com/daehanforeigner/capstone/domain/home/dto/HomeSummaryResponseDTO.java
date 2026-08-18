@@ -21,7 +21,10 @@ public record HomeSummaryResponseDTO(
         @Schema(description = "이번 주 발음 정확도 평균(%) — 이번 주 기록이 없으면 0", example = "68.0")
         double weeklyAccuracy,
 
-        @Schema(description = "지난주 대비 증감(%) — 양수면 상승. 지난주 기록이 없으면 0", example = "8.0")
-        double accuracyDiff
+        // 지난주 기록이 없을 때 0을 주면 "변화 없음"으로 읽혀 신규 회원이 상승한 것처럼 보인다.
+        // "비교 대상 없음"은 null로 구분해 프론트가 '-' 등으로 표시할 수 있게 한다
+        @Schema(description = "지난주 대비 증감(%) — 양수면 상승. **지난주 기록이 없으면 null**", example = "8.0",
+                nullable = true)
+        Double accuracyDiff
 ) {
 }

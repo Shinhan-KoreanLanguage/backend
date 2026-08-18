@@ -33,9 +33,11 @@ public class HomeController {
                     - `studyDayCount` — 한 번이라도 연습한 날의 수
                     - `streakDayCount` — 마지막 학습일부터 하루도 빠지지 않고 이어진 일수
                     - `weeklyAccuracy` — 이번 주(월요일 기준) 발음 정확도 평균
-                    - `accuracyDiff` — 지난주 대비 증감. 양수면 상승, 음수면 하락입니다
+                    - `accuracyDiff` — 지난주 대비 증감. 양수면 상승, 음수면 하락입니다.
+                      **지난주 기록이 없으면 `null`** 이므로 `-` 등으로 표시해 주세요.
+                      0으로 내려오면 "변화 없음"이라는 뜻입니다
 
-                    학습 기록이 없는 신규 회원은 모든 값이 0으로 내려옵니다.
+                    학습 기록이 없는 신규 회원은 `accuracyDiff`가 `null`, 나머지는 0으로 내려옵니다.
                     """
     )
     @ApiResponses({
