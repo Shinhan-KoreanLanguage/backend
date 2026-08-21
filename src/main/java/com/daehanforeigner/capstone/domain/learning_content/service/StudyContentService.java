@@ -68,8 +68,6 @@ public class StudyContentService {
                 pronunciationAttemptRepository.findPassedContentIds(userId, contents));
         Set<Long> unsolvedIds = new HashSet<>(
                 wrongAnswerRepository.findUnsolvedContentIds(userId, contents));
-        Set<Long> attemptedIds = new HashSet<>(
-                pronunciationAttemptRepository.findAttemptedContentIds(userId, contents));
 
         Map<Long, String> audioUrlMap = new HashMap<>();
         for (StandardPronunciation pronunciation :
@@ -83,7 +81,7 @@ public class StudyContentService {
                 StudyContentListResponseDTO.from(
                         content,
                         audioUrlMap.get(content.getContentId()),
-                        resolveStatus(content.getContentId(), passedIds, unsolvedIds, attemptedIds)));
+                        resolveStatus(content.getContentId(), passedIds, unsolvedIds)));
 
         return PageResponseDTO.from(dtoPage);
     }
@@ -104,12 +102,13 @@ public class StudyContentService {
     // 카드 배지에 표시할 학습 상태를 정한다.
     // 한 콘텐츠에 통과 기록과 오답 기록이 함께 있을 수 있어(틀렸다가 나중에 맞힌 경우) 판정 순서가 중요하다.
     // 통과 이력이 있으면 완료, 없으면 아직 통과하지 못한 시도로 보고 오답, 시도 자체가 없으면 미학습
-    private StudyStatus resolveStatus(Long contentId, Set<Long> passedIds,
-                                      Set<Long> unsolvedIds, Set<Long> attemptedIds) {
+    // 오답 여부는 WrongAnswer만 기준으로 삼는다.
+    // 시도 기록까지 함께 보면 사용자가 오답 정리에서 삭제해도 배지가 계속 남는다
+    private StudyStatus resolveStatus(Long contentId, Set<Long> passedIds, Set<Long> unsolvedIds) {
         if (passedIds.contains(contentId)) {
             return StudyStatus.COMPLETED;
         }
-        if (unsolvedIds.contains(contentId) || attemptedIds.contains(contentId)) {
+        if (unsolvedIds.contains(contentId)) {
             return StudyStatus.WRONG;
         }
         return StudyStatus.NOT_STARTED;
