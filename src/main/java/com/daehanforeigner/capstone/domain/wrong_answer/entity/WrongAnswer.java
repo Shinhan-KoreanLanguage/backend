@@ -41,9 +41,16 @@ public class WrongAnswer extends GlobalEntity {
     @Column(name = "last_attempted_at") // 마지막 시도 날짜
     private LocalDateTime lastAttemptedAt;
 
+    // 오답 노트 목록과 정확도 분포에 쓰는 값.
+    // 평균이 아니라 최근 점수를 담는다 — 여러 번 틀린 뒤 한 번 잘해도 평균은 거의 안 움직여
+    // 학습자가 나아지고 있다는 걸 화면에서 볼 수 없기 때문이다
+    @Column(name = "last_accuracy") // 마지막 시도 정확도
+    private Double lastAccuracy;
+
     // 재시도 결과 반영 — 틀리면 횟수를 올리고, 맞히면 해결 처리
-    public void recordAttempt(boolean passed) {
+    public void recordAttempt(boolean passed, double accuracy) {
         this.lastAttemptedAt = LocalDateTime.now();
+        this.lastAccuracy = accuracy;
 
         if (passed) {
             this.isSolved = true;
