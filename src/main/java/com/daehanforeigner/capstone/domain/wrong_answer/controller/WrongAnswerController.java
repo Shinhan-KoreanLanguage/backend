@@ -19,9 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -107,34 +105,5 @@ public class WrongAnswerController {
     public ResponseEntity<RsData<WrongAnswerSummaryResponseDTO>> getSummary(
             @AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(RsData.success(wrongAnswerService.getSummary(userId)));
-    }
-
-    // 오답 목록에서 제외
-    @Operation(
-            summary = "오답 삭제",
-            description = """
-                    오답 목록에서 해당 항목을 제거합니다.
-
-                    **학습 기록 자체는 지워지지 않습니다.** 오답 표시만 사라지므로 통계와 학습 현황에는 영향이 없습니다.
-                    삭제하면 학습 콘텐츠 목록의 배지도 `WRONG`에서 `NOT_STARTED`로 바뀝니다.
-
-                    다른 회원의 오답을 삭제하려 하면 404가 반환됩니다.
-                    """
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "삭제 성공"),
-            @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`"),
-            @ApiResponse(responseCode = "404", description = "`WRONG_ANSWER_NOT_FOUND` 없거나 본인 것이 아님")
-    })
-    @DeleteMapping("/{wrongId}")
-    public ResponseEntity<RsData<String>> deleteWrongAnswer(
-            @AuthenticationPrincipal Long userId,
-
-            @Parameter(description = "삭제할 오답 기록 ID", example = "3")
-            @PathVariable("wrongId") Long wrongId) {
-
-        wrongAnswerService.deleteWrongAnswer(userId, wrongId);
-
-        return ResponseEntity.ok(RsData.success("오답 기록이 삭제되었습니다."));
     }
 }
