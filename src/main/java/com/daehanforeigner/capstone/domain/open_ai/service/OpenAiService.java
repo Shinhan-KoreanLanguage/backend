@@ -4,8 +4,10 @@ import com.daehanforeigner.capstone.domain.open_ai.dto.OpenAIMessage;
 import com.daehanforeigner.capstone.domain.open_ai.dto.OpenAIRequestDto;
 import com.daehanforeigner.capstone.domain.open_ai.dto.OpenAIResponse;
 import com.daehanforeigner.capstone.domain.open_ai.dto.PronunciationFeedbackResult;
+import com.daehanforeigner.capstone.domain.open_ai.dto.PronunciationFeedbackResult.RatingComment;
 import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OpenAiService {
@@ -81,10 +84,72 @@ public class OpenAiService {
 
         OpenAIRequestDto request = new OpenAIRequestDto(model, messages, MAX_TOKENS);
 
-        OpenAIResponse response = openAiRestTemplate.postForObject(apiUrl, request, OpenAIResponse.class);
+        try {
+            OpenAIResponse response = openAiRestTemplate.postForObject(apiUrl, request, OpenAIResponse.class);
+            String content = response.choices().get(0).message().content();
+            return objectMapper.readValue(content, PronunciationFeedbackResult.class);
+        } catch (Exception e) {
+            // OpenAI 호출 실패(네트워크 오류·타임아웃·요금 한도·JSON 파싱 실패 등) 시
+            // 발음 시도 저장 전체가 롤백되지 않도록 점수 기반 규칙 피드백으로 대체한다
+            log.warn("OpenAI 피드백 생성 실패, fallback 피드백으로 대체합니다. sttAccuracy={}, pitchAccuracy={}",
+                    sttAccuracy, pitchAccuracy, e);
+            return buildFallbackFeedback(sttAccuracy, pitchAccuracy, lengthMismatch, language);
+        }
+    }
 
-        String content = response.choices().get(0).message().content();
+    // 등급 임계값 — 게임 합격 기준(85%)과 동일한 기준을 사용한다
+    private static final double GOOD_THRESHOLD = 85.0;
+    private static final double NORMAL_THRESHOLD = 60.0;
 
-        return objectMapper.readValue(content, PronunciationFeedbackResult.class);
+    private static final Map<NativeLanguage, String[]> ACCURACY_COMMENTS = Map.of(
+            NativeLanguage.KR, new String[]{"발음이 목표 문장과 매우 비슷해요!", "발음이 대체로 잘 맞아요.", "목표 문장과 발음 차이가 커요."},
+            NativeLanguage.EN, new String[]{"Your pronunciation closely matches the target.", "Your pronunciation mostly matches the target.", "Your pronunciation differs a lot from the target."},
+            NativeLanguage.JP, new String[]{"発音は目標の文にとても近いです!", "発音はおおむね合っています。", "目標の文と発音の差が大きいです。"},
+            NativeLanguage.CN, new String[]{"你的发音非常接近目标句子!", "发音基本准确。", "发音与目标句子差异较大。"}
+    );
+
+    private static final Map<NativeLanguage, String[]> INTONATION_COMMENTS = Map.of(
+            NativeLanguage.KR, new String[]{"억양이 원어민과 매우 비슷해요!", "억양이 대체로 자연스러워요.", "억양이 원어민과 차이가 커요."},
+            NativeLanguage.EN, new String[]{"Your intonation closely matches a native speaker's.", "Your intonation is mostly natural.", "Your intonation differs a lot from a native speaker's."},
+            NativeLanguage.JP, new String[]{"イントネーションがネイティブにとても近いです!", "イントネーションはおおむね自然です。", "イントネーションがネイティブと大きく違います。"},
+            NativeLanguage.CN, new String[]{"你的语调非常接近母语者!", "语调基本自然。", "语调与母语者差异较大。"}
+    );
+
+    // 발음 길이는 STT 서버가 boolean(lengthMismatch)만 넘겨주므로 2단계로만 판정한다
+    private static final Map<NativeLanguage, String[]> DURATION_COMMENTS = Map.of(
+            NativeLanguage.KR, new String[]{"발음 길이가 원어민과 비슷해요.", "발음 길이가 원어민과 차이가 커요."},
+            NativeLanguage.EN, new String[]{"Your pronunciation length is close to a native speaker's.", "Your pronunciation length differs a lot from a native speaker's."},
+            NativeLanguage.JP, new String[]{"発音の長さがネイティブに近いです。", "発音の長さがネイティブと大きく違います。"},
+            NativeLanguage.CN, new String[]{"你的发音时长接近母语者。", "你的发音时长与母语者差异较大。"}
+    );
+
+    private static final Map<NativeLanguage, String> FALLBACK_TIPS = Map.of(
+            NativeLanguage.KR, "천천히, 또박또박 다시 한 번 따라 말해보세요.",
+            NativeLanguage.EN, "Try saying it again slowly and clearly.",
+            NativeLanguage.JP, "もう一度、ゆっくりはっきり言ってみましょう。",
+            NativeLanguage.CN, "请再慢慢、清楚地跟读一遍。"
+    );
+
+    private PronunciationFeedbackResult buildFallbackFeedback(
+            double sttAccuracy, Double pitchAccuracy, boolean lengthMismatch, NativeLanguage language) {
+
+        int accuracyIdx = ratingIndex(sttAccuracy);
+        // 억양 데이터가 없으면(영상 미제출 등) 판정할 근거가 없으므로 중립(NORMAL)으로 둔다
+        int intonationIdx = pitchAccuracy != null ? ratingIndex(pitchAccuracy) : 1;
+        int durationIdx = lengthMismatch ? 1 : 0;
+
+        RatingComment accuracy = new RatingComment(RATING_NAMES[accuracyIdx], ACCURACY_COMMENTS.get(language)[accuracyIdx]);
+        RatingComment intonation = new RatingComment(RATING_NAMES[intonationIdx], INTONATION_COMMENTS.get(language)[intonationIdx]);
+        RatingComment duration = new RatingComment(durationIdx == 0 ? "GOOD" : "BAD", DURATION_COMMENTS.get(language)[durationIdx]);
+
+        return new PronunciationFeedbackResult(accuracy, intonation, duration, FALLBACK_TIPS.get(language));
+    }
+
+    private static final String[] RATING_NAMES = {"GOOD", "NORMAL", "BAD"};
+
+    private int ratingIndex(double score) {
+        if (score >= GOOD_THRESHOLD) return 0;
+        if (score >= NORMAL_THRESHOLD) return 1;
+        return 2;
     }
 }
