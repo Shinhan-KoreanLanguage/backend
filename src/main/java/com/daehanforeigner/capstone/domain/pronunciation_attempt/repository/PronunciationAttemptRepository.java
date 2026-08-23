@@ -42,4 +42,11 @@ public interface PronunciationAttemptRepository extends JpaRepository<Pronunciat
     Double findAverageAccuracy(@Param("userId") Long userId,
                                @Param("from") LocalDateTime from,
                                @Param("to") LocalDateTime to);
+
+    // 특정 기간의 발음 시도 시각 — 출석부(월별 캘린더) 조회용
+    @Query("SELECT a.createdAt FROM PronunciationAttempt a " +
+            "WHERE a.user.userId = :userId AND a.createdAt >= :from AND a.createdAt < :to")
+    List<LocalDateTime> findAttemptTimesBetween(@Param("userId") Long userId,
+                                                @Param("from") LocalDateTime from,
+                                                @Param("to") LocalDateTime to);
 }
