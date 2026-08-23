@@ -2,19 +2,22 @@ package com.daehanforeigner.capstone.domain.pronunciation_attempt.entity;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.user.entity.User;
+import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+// 학습 현황·통계가 모두 "회원 + 기간"으로 조회되므로 해당 인덱스를 둔다
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Table(name = "pronunciation_attempt")
-public class PronunciationAttempt {
+@SuperBuilder
+@Table(name = "pronunciation_attempt",
+        indexes = @Index(name = "idx_attempt_user_created", columnList = "user_id, created_at"))
+public class PronunciationAttempt extends GlobalEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
