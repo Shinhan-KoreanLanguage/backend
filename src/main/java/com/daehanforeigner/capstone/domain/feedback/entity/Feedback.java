@@ -1,6 +1,5 @@
 package com.daehanforeigner.capstone.domain.feedback.entity;
 
-
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
