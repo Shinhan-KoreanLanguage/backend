@@ -20,4 +20,10 @@ public interface WrongAnswerRepository extends JpaRepository<WrongAnswer, Long> 
             "WHERE w.user.userId = :userId AND w.learningContent IN :contents AND w.isSolved = false")
     List<Long> findUnsolvedContentIds(@Param("userId") Long userId,
                                       @Param("contents") List<LearningContent> contents);
+
+    // 아직 해결하지 못한 오답을 틀린 횟수 많은 순으로 — 오답 통계 화면용
+    @Query("SELECT w FROM WrongAnswer w " +
+            "WHERE w.user.userId = :userId AND w.isSolved = false " +
+            "ORDER BY w.wrongCount DESC")
+    List<WrongAnswer> findUnsolvedOrderByWrongCountDesc(@Param("userId") Long userId);
 }
