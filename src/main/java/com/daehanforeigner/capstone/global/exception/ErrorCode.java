@@ -55,7 +55,10 @@ public enum ErrorCode {
     AI_REFERENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI_REFERENCE_NOT_FOUND", "원어민 기준 발음이 등록되지 않았습니다."), // AI 서버에 원어민 발음 기준이 없는 경우
     AI_MEDIA_ANALYSIS_FAILED(HttpStatus.BAD_REQUEST, "AI_MEDIA_ANALYSIS_FAILED", "업로드한 영상·음성을 분석할 수 없습니다. 얼굴이 정면으로 보이는 영상인지 확인해주세요."), // AI 서버가 422로 거부 (얼굴 미검출 등)
     ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTEMPT_NOT_FOUND", "존재하지 않는 발음 시도입니다."), // 발음 시도 조회 실패
-    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."); // 저장된 파일을 다시 읽으려 했으나 없는 경우
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."), // 저장된 파일을 다시 읽으려 했으나 없는 경우
+
+    // 통계 관련 에러코드
+    INVALID_DATE_PARAMETER(HttpStatus.BAD_REQUEST, "INVALID_DATE_PARAMETER", "유효하지 않은 연도 또는 월입니다."); // year·month를 하나만 주었거나 달력상 존재하지 않는 월인 경우
 
     private final HttpStatus httpStatus;
     private final String code;
