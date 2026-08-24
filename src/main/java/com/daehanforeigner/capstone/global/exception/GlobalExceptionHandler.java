@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j // log 객체 생성해서 로그를 남길 수 있도록 함
 @RestControllerAdvice // 모든 컨트롤러에서 공통으로 발생하는 예외처리를 이 곳에서 처리해 JSON 형태로 응답
@@ -50,6 +51,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.INVALID_SORT_PROPERTY.getHttpStatus())
                 .body(RsData.fail(ErrorCode.INVALID_SORT_PROPERTY));
+    }
+
+    // 매핑되지 않은 경로를 요청한 경우 ex) 오타, 아직 배포되지 않은 API 호출
+    // → 이게 없으면 아래 Exception 핸들러가 잡아 500이 되어, 프론트가 "서버가 죽었나" 오해하게 된다
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<RsData<Void>> handleNoResourceFound(NoResourceFoundException e) {
+        return ResponseEntity
+                .status(ErrorCode.NOT_FOUND.getHttpStatus())
+                .body(RsData.fail(ErrorCode.NOT_FOUND));
     }
 
     @ExceptionHandler(Exception.class) // 그 외 모든 예외처리
