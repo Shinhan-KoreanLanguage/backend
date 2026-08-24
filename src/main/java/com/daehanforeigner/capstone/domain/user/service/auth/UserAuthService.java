@@ -32,13 +32,19 @@ public class UserAuthService {
     @Transactional
     public void signup(SignupRequestDTO signupRequestDTO) {
 
-        if (userRepository.existsByEmail(signupRequestDTO.email())) {
-            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
-        }
+        // 탈퇴 회원은 14일간 행이 남아 있어 중복으로 걸린다.
+        // 프론트가 "탈퇴한 계정이라 재사용 불가"를 안내할 수 있도록 에러코드를 구분해서 던진다
+        userRepository.findByEmail(signupRequestDTO.email()).ifPresent(user -> {
+            throw new CustomException(user.getStatus() == Status.WITHDRAWN
+                    ? ErrorCode.WITHDRAWN_EMAIL_NOT_REUSABLE
+                    : ErrorCode.EMAIL_ALREADY_EXISTS);
+        });
 
-        if (userRepository.existsByNickname(signupRequestDTO.nickname())) {
-            throw new CustomException(ErrorCode.NICKNAME_ALREADY_EXISTS);
-        }
+        userRepository.findByNickname(signupRequestDTO.nickname()).ifPresent(user -> {
+            throw new CustomException(user.getStatus() == Status.WITHDRAWN
+                    ? ErrorCode.WITHDRAWN_NICKNAME_NOT_REUSABLE
+                    : ErrorCode.NICKNAME_ALREADY_EXISTS);
+        });
 
         NativeLanguage nativeLanguage = parseNativeLanguage(signupRequestDTO.nativeLanguage());
 

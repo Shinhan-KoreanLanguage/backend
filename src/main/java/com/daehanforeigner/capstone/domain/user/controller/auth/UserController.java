@@ -47,7 +47,11 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "가입 성공"),
             @ApiResponse(responseCode = "400", description = "입력값 오류 — 이메일 형식, 비밀번호 8~20자 위반 등"),
-            @ApiResponse(responseCode = "409", description = "`EMAIL_ALREADY_EXISTS` 이미 가입된 이메일")
+            @ApiResponse(responseCode = "409",
+                    description = "`EMAIL_ALREADY_EXISTS` 이미 가입된 이메일 / "
+                            + "`NICKNAME_ALREADY_EXISTS` 이미 사용 중인 닉네임 / "
+                            + "`WITHDRAWN_EMAIL_NOT_REUSABLE` · `WITHDRAWN_NICKNAME_NOT_REUSABLE` "
+                            + "탈퇴한 계정의 값 — 탈퇴 후 14일이 지나야 재사용 가능")
     })
     @PostMapping("/signup")
     public ResponseEntity<RsData<String>> signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO) {
