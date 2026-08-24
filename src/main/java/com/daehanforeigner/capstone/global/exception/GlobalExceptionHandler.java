@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j // log 객체 생성해서 로그를 남길 수 있도록 함
 @RestControllerAdvice // 모든 컨트롤러에서 공통으로 발생하는 예외처리를 이 곳에서 처리해 JSON 형태로 응답
@@ -50,6 +52,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.INVALID_SORT_PROPERTY.getHttpStatus())
                 .body(RsData.fail(ErrorCode.INVALID_SORT_PROPERTY));
+    }
+
+    // 필수로 지정한 @RequestPart(예: 발음 게임 단어 제출의 audio)가 multipart 본문 안에는
+    // 없는 경우 → 컨트롤러 진입 전에 터지므로 서비스단의 null 체크가 실행되지 않는다.
+    //   이게 없으면 아래 Exception 핸들러가 잡아 500이 남
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<RsData<Void>> handleMissingPart(MissingServletRequestPartException e) {
+        return ResponseEntity
+                .status(ErrorCode.EMPTY_FILE.getHttpStatus())
+                .body(RsData.fail(ErrorCode.EMPTY_FILE));
+    }
+
+    // multipart/form-data가 필요한 요청에 본문을 아예 안 보내거나 다른 Content-Type으로 보낸 경우
+    // ex) 발음 게임 단어 제출 시 audio 파일 자체를 첨부하지 않고 요청한 경우
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<RsData<Void>> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException e) {
+        return ResponseEntity
+                .status(ErrorCode.EMPTY_FILE.getHttpStatus())
+                .body(RsData.fail(ErrorCode.EMPTY_FILE));
     }
 
     @ExceptionHandler(Exception.class) // 그 외 모든 예외처리
