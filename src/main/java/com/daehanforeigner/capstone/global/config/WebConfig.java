@@ -22,6 +22,11 @@ public class WebConfig implements WebMvcConfigurer {
         String uploadPath = Paths.get(uploadDir).toAbsolutePath().toUri().toString();
 
         registry.addResourceHandler("/images/**")   // 이 URL로 오면
-                .addResourceLocations(uploadPath);   // 이 로컬 폴더에서 찾음
+                .addResourceLocations(
+                        uploadPath,                        // 1순위: 업로드된 파일 (uploads 폴더)
+                        // 2순위: jar에 포함된 기본 이미지.
+                        // uploads 폴더는 .gitignore 대상이라 배포 서버에는 존재하지 않는다.
+                        // 기본 프로필처럼 항상 있어야 하는 파일은 여기에 두어야 404가 나지 않는다
+                        "classpath:/static/images/");
     }
 }

@@ -44,11 +44,15 @@ public class AdminLearningContentController {
                     - 페이지 번호(`page`)는 **0부터** 시작하고, `size`는 최대 100까지 허용됩니다
                     - 기본 정렬은 최신 등록순(contentId 내림차순)입니다
 
+                    - 정렬은 `contentId` · `difficulty` · `text` · `contentType`만 가능하며,
+                      다른 값을 넣으면 400 `INVALID_SORT_PROPERTY`가 반환됩니다 (대소문자 구분)
+
                     응답의 `content` 배열이 목록이고, 페이지 정보는 그 바깥에 있습니다.
                     """
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "`INVALID_SORT_PROPERTY` 정렬할 수 없는 항목"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`"),
             @ApiResponse(responseCode = "403", description = "`FORBIDDEN` 관리자 권한 없음")
     })

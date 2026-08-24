@@ -18,6 +18,10 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS", "이미 가입된 이메일입니다."), // 중복 된 이메일로 회원가입을 시도할 경우
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 일치하지 않습니다."), // 로컬 로그인에서 이메일 또는 비밀번호가 일치하지 않는 경우
     WITHDRAWN_USER(HttpStatus.FORBIDDEN, "WITHDRAWN_USER", "탈퇴한 사용자입니다."), // status = WITHDRAWN인 경우
+    // 아래 두 개는 소프트 딜리트(14일) 때문에 탈퇴 회원의 행이 남아 있어 발생.
+    // "이미 가입된 이메일"로 응답하면 본인이 탈퇴시킨 계정인 줄 몰라 프론트에서 안내가 불가능하므로 구분한다
+    WITHDRAWN_EMAIL_NOT_REUSABLE(HttpStatus.CONFLICT, "WITHDRAWN_EMAIL_NOT_REUSABLE", "탈퇴한 계정의 이메일입니다. 탈퇴 후 14일이 지나면 다시 사용할 수 있습니다."), // 탈퇴 회원의 이메일로 재가입 시도
+    WITHDRAWN_NICKNAME_NOT_REUSABLE(HttpStatus.CONFLICT, "WITHDRAWN_NICKNAME_NOT_REUSABLE", "탈퇴한 계정의 닉네임입니다. 탈퇴 후 14일이 지나면 다시 사용할 수 있습니다."), // 탈퇴 회원의 닉네임으로 재가입 시도
 
     // 토큰 관련 에러
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED", "토큰이 만료되었습니다."), // AccessToken이 만료된 경우
