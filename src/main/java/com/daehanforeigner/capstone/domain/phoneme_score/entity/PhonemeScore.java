@@ -1,6 +1,5 @@
 package com.daehanforeigner.capstone.domain.phoneme_score.entity;
 
-
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
 import com.daehanforeigner.capstone.global.entity.GlobalEntity;
 import jakarta.persistence.*;

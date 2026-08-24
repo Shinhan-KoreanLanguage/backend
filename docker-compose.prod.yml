@@ -1,0 +1,31 @@
+# NCP 서버에서 사용 (Docker Hub에서 이미지를 pull해서 실행, 소스 불필요)
+# 서버에 이 파일과 .env만 올려두고: docker compose -f docker-compose.prod.yml up -d
+services:
+  app:
+    image: ${DOCKER_IMAGE}   # 예: yourdockerhubid/capstone-backend:latest
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/capstone?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    depends_on:
+      - mysql
+    volumes:
+      - uploads:/app/uploads
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: capstone
+    ports:
+      - "127.0.0.1:3306:3306"   # SSH 터널 전용 (외부 노출 안 됨, 서버 로컬에서만 접근 가능)
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  mysql-data:

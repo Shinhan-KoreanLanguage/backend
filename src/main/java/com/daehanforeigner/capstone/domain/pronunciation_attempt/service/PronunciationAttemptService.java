@@ -8,6 +8,8 @@ import com.daehanforeigner.capstone.domain.feedback.entity.FeedbackType;
 import com.daehanforeigner.capstone.domain.feedback.repository.FeedbackRepository;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
+import com.daehanforeigner.capstone.domain.open_ai.dto.PronunciationFeedbackResult;
+import com.daehanforeigner.capstone.domain.open_ai.service.OpenAiService;
 import com.daehanforeigner.capstone.domain.phoneme_score.entity.PhonemeScore;
 import com.daehanforeigner.capstone.domain.phoneme_score.repository.PhonemeScoreRepository;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.dto.AttemptResultResponseDTO;
@@ -56,6 +58,8 @@ public class PronunciationAttemptService {
     private final FileService fileService;
 
     private final PronunciationAiClient aiClient;
+
+    private final OpenAiService openAiService;
 
     // 녹음 종료 시 호출 — 파일 저장 → AI 분석 → 결과 저장
     @Transactional
@@ -129,7 +133,7 @@ public class PronunciationAttemptService {
                     .build());
         }
 
-        // 6. 피드백 3항목 생성 — AI는 점수만 주므로 문구·등급은 우리가 만든다
+        // 6. 피드백 3항목 생성 — 점수를 GPT에 넘겨 등급·문구를 생성받는다
         saveFeedbacks(attempt, user, result);
 
         // 7. 오답 기록 갱신
@@ -161,33 +165,21 @@ public class PronunciationAttemptService {
                 feedbackRepository.findAllByAttempt(attempt));
     }
 
-    // 화면의 상세 피드백 3항목을 점수 구간으로 만들어 저장
+    // 화면의 상세 피드백 3항목 — GPT가 점수를 바탕으로 등급·문구를 직접 생성
     private void saveFeedbacks(PronunciationAttempt attempt, User user, JsonNode result) {
         double stt = result.path("stt_accuracy").asDouble(0.0);
-        double pitch = result.path("pitch_accuracy").asDouble(0.0);
+        Double pitch = nullableDouble(result, "pitch_accuracy");
         boolean lengthMismatch = result.path("pitch_curve").path("length_mismatch").asBoolean(false);
 
-        saveFeedback(attempt, user, FeedbackType.ACCURACY, levelOf(stt), accuracyMessage(levelOf(stt)));
-        saveFeedback(attempt, user, FeedbackType.INTONATION, levelOf(pitch), intonationMessage(levelOf(pitch)));
+        PronunciationFeedbackResult feedback = openAiService.generatePronunciationFeedback(
+                attempt.getRecognizedText(), stt, pitch, lengthMismatch, user.getNativeLanguage());
+
+        saveFeedback(attempt, user, FeedbackType.ACCURACY,
+                levelOf(feedback.accuracy().rating()), feedback.accuracy().comment());
+        saveFeedback(attempt, user, FeedbackType.INTONATION,
+                levelOf(feedback.intonation().rating()), feedback.intonation().comment());
         saveFeedback(attempt, user, FeedbackType.LENGTH,
-                lengthMismatch ? FeedbackLevel.WEAK : FeedbackLevel.GOOD,
-                lengthMismatch ? "발음 길이가 원어민과 많이 달라요. 천천히 따라 읽어 보세요." : "발음 길이가 적절해요!");
-    }
-
-    private String accuracyMessage(FeedbackLevel level) {
-        return switch (level) {
-            case GOOD -> "대부분의 발음이 정확해요!";
-            case NORMAL -> "대체로 알아들을 수 있지만 일부 소리가 흐려요.";
-            case WEAK -> "제시된 단어와 다르게 들려요. 또박또박 발음해 보세요.";
-        };
-    }
-
-    private String intonationMessage(FeedbackLevel level) {
-        return switch (level) {
-            case GOOD -> "억양이 자연스러워요!";
-            case NORMAL -> "억양이 조금 밋밋해요. 높낮이를 살려 보세요.";
-            case WEAK -> "억양의 높낮이가 원어민과 많이 달라요.";
-        };
+                levelOf(feedback.duration().rating()), feedback.duration().comment());
     }
 
     private void saveFeedback(PronunciationAttempt attempt, User user,
@@ -201,14 +193,13 @@ public class PronunciationAttemptService {
                 .build());
     }
 
-    private FeedbackLevel levelOf(double score) {
-        if (score >= 80) {
-            return FeedbackLevel.GOOD;
-        }
-        if (score >= 60) {
-            return FeedbackLevel.NORMAL;
-        }
-        return FeedbackLevel.WEAK;
+    // GPT가 주는 rating("GOOD"/"NORMAL"/"BAD")을 우리 FeedbackLevel enum으로 변환 (BAD -> WEAK, 이름이 다름)
+    private FeedbackLevel levelOf(String rating) {
+        return switch (rating) {
+            case "GOOD" -> FeedbackLevel.GOOD;
+            case "NORMAL" -> FeedbackLevel.NORMAL;
+            default -> FeedbackLevel.WEAK;
+        };
     }
 
     // 오답 기록은 회원·콘텐츠당 1건만 두고 갱신한다
