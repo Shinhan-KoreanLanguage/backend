@@ -8,6 +8,7 @@ public enum ErrorCode {
 
     // 공통적으로 사용하는 에러코드
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "잘못된 요청입니다."), // 형식·파라미터를 잘못된 요청값으로 요청한 경우
+    INVALID_SORT_PROPERTY(HttpStatus.BAD_REQUEST, "INVALID_SORT_PROPERTY", "정렬할 수 없는 항목입니다."), // 존재하지 않는 필드로 정렬을 요청한 경우
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증되지 않은 사용자입니다."), // 토큰이 없는 상태 혹은 로그아웃 되어 있는 상태
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "권한이 없는 사용자입니다."), // 인증은 되었으나 권한이 없는 상태 ex) 일반 사용자가 관리자 페이지 접근하는 경우
     NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "요청한 리소스를 찾을 수 없습니다."), // 존재하지 않는 경로 접근

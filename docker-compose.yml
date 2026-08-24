@@ -1,0 +1,33 @@
+# 로컬에서 도커 이미지 동작을 검증할 때 사용 (소스에서 직접 빌드)
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # 컨테이너 네트워크 안에서는 mysql 서비스명으로 접속
+      DB_URL: jdbc:mysql://mysql:3306/capstone?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    depends_on:
+      - mysql
+    volumes:
+      - uploads:/app/uploads
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: capstone
+    # 호스트 3306과 충돌 방지를 위해 포트는 컨테이너 네트워크 내부에서만 사용 (app -> mysql:3306)
+    # 호스트 DB 클라이언트로 직접 붙어야 하면 아래 주석 해제
+    # ports:
+    #   - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  mysql-data:

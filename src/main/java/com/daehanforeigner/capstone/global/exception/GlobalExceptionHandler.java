@@ -3,6 +3,7 @@ package com.daehanforeigner.capstone.global.exception;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -39,6 +40,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.BAD_REQUEST.getHttpStatus())
                 .body(RsData.fail(ErrorCode.BAD_REQUEST));
+    }
+
+    // 존재하지 않는 필드로 정렬을 요청한 경우 ex) ?sort=wrongcount (오타)
+    // → 사용자 입력 실수이므로 500이 아니라 400으로 응답한다.
+    //   이게 없으면 아래 Exception 핸들러가 잡아 서버 오류로 보임
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<RsData<Void>> handleInvalidSort(PropertyReferenceException e) {
+        return ResponseEntity
+                .status(ErrorCode.INVALID_SORT_PROPERTY.getHttpStatus())
+                .body(RsData.fail(ErrorCode.INVALID_SORT_PROPERTY));
     }
 
     @ExceptionHandler(Exception.class) // 그 외 모든 예외처리

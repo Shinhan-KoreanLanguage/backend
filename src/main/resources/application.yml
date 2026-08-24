@@ -12,19 +12,19 @@ spring:
   data:
     web:
       pageable:
-        max-page-size: 100 # 클라이언트가 요청 가능한 최대 페이지 사이즈
-        default-page-size: 20 # 기본 페이지 사이즈
+        max-page-size: ${PAGE_MAX_SIZE:100} # 클라이언트가 요청 가능한 최대 페이지 사이즈
+        default-page-size: ${PAGE_DEFAULT_SIZE:20} # 기본 페이지 사이즈
 
   # 파일 업로드(multipart) 요청 크기 제한
   servlet:
     multipart:
-      max-file-size: 50MB      # 파일 1개 최대 크기
-      max-request-size: 100MB  # 요청 전체 최대 크기
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE:50MB}      # 파일 1개 최대 크기
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:100MB}  # 요청 전체 최대 크기
 
   # JSON → enum 변환 시 대소문자 무시 (예: "kr" → KR) — 회원가입/프로필수정 일관 처리
   jackson:
     mapper:
-      accept-case-insensitive-enums: true
+      accept-case-insensitive-enums: ${JACKSON_CASE_INSENSITIVE_ENUMS:true}
 
 custom:
   # AI 분석 서버 (FastAPI)
@@ -60,10 +60,9 @@ custom:
 # Swagger 설정
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha # API 그룹 알파벳 순으로 정렬
-    operations-sorter: alpha # 각 그룹 안의 API를 알파벳 순으로 정렬
-    persist-authorization: true # 새로고침해도 입력한 토큰 유지 (프론트 편의)
+    path: ${SWAGGER_UI_PATH:/swagger-ui.html}
+    tags-sorter: ${SWAGGER_TAGS_SORTER:alpha} # API 그룹 알파벳 순으로 정렬
+    operations-sorter: ${SWAGGER_OPERATIONS_SORTER:alpha} # 각 그룹 안의 API를 알파벳 순으로 정렬
   api-docs:
-    default-consumes-media-type: application/json # 요청 기본 타입을 JSON으로 설정
-    default-produces-media-type: application/json # 응답 기본 타입을 JSON으로 설정
+    default-consumes-media-type: ${SWAGGER_DEFAULT_CONSUMES:application/json} # 요청 기본 타입을 JSON으로 설정
+    default-produces-media-type: ${SWAGGER_DEFAULT_PRODUCES:application/json} # 응답 기본 타입을 JSON으로 설정
