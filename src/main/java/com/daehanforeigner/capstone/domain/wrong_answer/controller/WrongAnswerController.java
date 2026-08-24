@@ -41,7 +41,8 @@ public class WrongAnswerController {
                     - `tab` — 화면 상단 탭. `ALL`(전체) / `WORD`(단어, 음절 포함) / `SENTENCE`(문장)
                     - `solved` — `false`면 아직 못 맞힌 것만, `true`면 복습 완료한 것만
                     - `keyword` — 학습 텍스트와 표준 발음 표기를 부분 일치로 검색합니다
-                    - 정렬은 `sort` 파라미터로 지정합니다
+                    - 정렬은 `sort` 파라미터로 지정합니다. **아래 세 필드만 가능하며,
+                      다른 값을 넣으면 400 `INVALID_SORT_PROPERTY`가 반환됩니다** (대소문자 구분)
                       - 가장 많이 틀린 순 → `wrongCount,desc`
                       - 최근 학습 순 → `lastAttemptedAt,desc` (기본값)
                       - 정확도 낮은 순 → `lastAccuracy,asc`
@@ -55,6 +56,7 @@ public class WrongAnswerController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "`INVALID_SORT_PROPERTY` 정렬할 수 없는 항목"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`")
     })
     @GetMapping

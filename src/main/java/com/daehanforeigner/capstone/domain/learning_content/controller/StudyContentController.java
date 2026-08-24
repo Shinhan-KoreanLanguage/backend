@@ -51,11 +51,15 @@ public class StudyContentController {
                     `answerAudioUrl`은 관리자가 발음 자료를 등록하지 않은 콘텐츠면 null이므로,
                     이때는 미리 듣기 버튼을 비활성화해 주세요.
 
+                    정렬은 `sort` 파라미터로 지정합니다. **`contentId` · `difficulty` · `text`만 가능하며,
+                    다른 값을 넣으면 400 `INVALID_SORT_PROPERTY`가 반환됩니다** (대소문자 구분)
+
                     무한 스크롤은 응답의 `hasNext`로 판단하세요.
                     """
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "`INVALID_SORT_PROPERTY` 정렬할 수 없는 항목"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`")
     })
     @GetMapping
