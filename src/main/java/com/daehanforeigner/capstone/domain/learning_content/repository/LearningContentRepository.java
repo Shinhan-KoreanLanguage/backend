@@ -11,8 +11,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface LearningContentRepository extends JpaRepository<LearningContent, Long> {
+
+    // 게임용 단어 조회: 카테고리 내 WORD 타입 콘텐츠 전체
+    List<LearningContent> findAllByContentCategory_CategoryIdAndContentType(Long categoryId, ContentType contentType);
 
     // 관리자 목록 조회: 유형·난이도·검색어 필터(null이면 무시) + 페이징
     @Query("SELECT c FROM LearningContent c " +
@@ -61,4 +66,9 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
                                         @Param("difficulty") Difficulty difficulty,
                                         @Param("status") String status,
                                         Pageable pageable);
+
+    // 카테고리별 전체 콘텐츠 수 — 학습 완료율 계산용 (분모)
+    @Query("SELECT c.contentCategory.categoryId, c.contentCategory.name, COUNT(c) " +
+            "FROM LearningContent c GROUP BY c.contentCategory.categoryId, c.contentCategory.name")
+    List<Object[]> countGroupByCategory();
 }
