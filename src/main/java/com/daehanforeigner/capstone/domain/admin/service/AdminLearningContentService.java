@@ -15,6 +15,7 @@ import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
 import com.daehanforeigner.capstone.global.storage.FileService;
+import com.daehanforeigner.capstone.global.util.SortValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,11 +26,16 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AdminLearningContentService {
+
+    // 정렬을 허용할 필드. 관리자는 유형별 정렬도 쓰므로 회원용보다 하나 더 열어둔다
+    private static final Set<String> SORTABLE_PROPERTIES =
+            Set.of("contentId", "difficulty", "text", "contentType");
 
     private final LearningContentRepository learningContentRepository;
 
@@ -43,6 +49,8 @@ public class AdminLearningContentService {
 
     // 목록 조회 (유형·난이도·검색어 필터 + 페이징)
     public PageResponseDTO<LearningContentResponseDTO> getContents(Long categoryId, ContentType contentType, Difficulty difficulty, String keyword, Pageable pageable) {
+        SortValidator.validate(pageable, SORTABLE_PROPERTIES);
+
         Page<LearningContent> page = learningContentRepository
                 .searchContents(categoryId, contentType, difficulty, normalizeKeyword(keyword), pageable);
 

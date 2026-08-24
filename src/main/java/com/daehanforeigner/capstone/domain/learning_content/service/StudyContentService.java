@@ -15,6 +15,7 @@ import com.daehanforeigner.capstone.domain.wrong_answer.repository.WrongAnswerRe
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import com.daehanforeigner.capstone.global.util.SortValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,10 @@ import java.util.Set;
 @Transactional(readOnly = true) // 조회 전용
 public class StudyContentService {
 
+    // 정렬을 허용할 필드. 등록 순서·난이도·가나다순 정도면 학습 목록에 충분하다
+    private static final Set<String> SORTABLE_PROPERTIES =
+            Set.of("contentId", "difficulty", "text");
+
     private final LearningContentRepository learningContentRepository;
 
     private final StandardPronunciationRepository standardPronunciationRepository;
@@ -46,6 +51,8 @@ public class StudyContentService {
             Long userId, CategoryType categoryType, Long categoryId,
             ContentType contentType, Difficulty difficulty,
             StudyStatus status, Pageable pageable) {
+
+        SortValidator.validate(pageable, SORTABLE_PROPERTIES);
 
         // 1. 필터 조건으로 콘텐츠 페이지 조회.
         //    학습 상태 필터는 쿼리에서 처리해야 페이징 개수가 정확해진다

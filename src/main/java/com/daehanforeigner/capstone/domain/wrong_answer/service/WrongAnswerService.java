@@ -8,11 +8,14 @@ import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
 import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswerTab;
 import com.daehanforeigner.capstone.domain.wrong_answer.repository.WrongAnswerRepository;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
+import com.daehanforeigner.capstone.global.util.SortValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 // 오답 정리 담당.
 // 오답 기록은 발음 평가에서 쌓이고 재시도해서 통과하면 해결 처리되므로, 여기서는 조회만 다룬다
@@ -21,12 +24,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true) // 조회 전용
 public class WrongAnswerService {
 
+    // 정렬을 허용할 필드. 화면의 정렬 옵션(가장 많이 틀린 순·최근 학습 순·정확도 낮은 순)과 대응한다
+    private static final Set<String> SORTABLE_PROPERTIES =
+            Set.of("lastAttemptedAt", "wrongCount", "lastAccuracy");
+
     private final WrongAnswerRepository wrongAnswerRepository;
 
     // 오답 노트 목록 조회
     public PageResponseDTO<WrongAnswerResponseDTO> getWrongAnswers(
             Long userId, WrongAnswerTab tab, Boolean solved,
             Long categoryId, Difficulty difficulty, String keyword, Pageable pageable) {
+
+        SortValidator.validate(pageable, SORTABLE_PROPERTIES);
 
         Page<WrongAnswer> page = wrongAnswerRepository.search(
                 userId,
