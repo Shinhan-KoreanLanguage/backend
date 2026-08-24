@@ -93,6 +93,9 @@ public class PronunciationAttemptService {
         JsonNode pitchCurve = result.path("pitch_curve");
         boolean passed = result.path("is_correct").asBoolean(false);
 
+        // 시도 기록과 오답 기록 양쪽에 쓰이므로 한 번만 꺼내둔다
+        double accuracy = result.path("final_accuracy").asDouble(0.0);
+
         // 3. 시도 기록 저장 (분석 결과를 담아 한 번에)
         PronunciationAttempt attempt = pronunciationAttemptRepository.save(
                 PronunciationAttempt.builder()
@@ -102,7 +105,7 @@ public class PronunciationAttemptService {
                         .voiceScore(nullableDouble(result, "stt_accuracy"))
                         .lipScore(nullableDouble(result, "mouth_accuracy")) // 영상 없으면 null
                         .pitchScore(nullableDouble(result, "pitch_accuracy"))
-                        .accuracy(result.path("final_accuracy").asDouble(0.0))
+                        .accuracy(accuracy)
                         .isPassed(passed)
                         .userPitchData(jsonOrNull(pitchCurve.path("user")))
                         .pitchHighlightSegments(jsonOrNull(pitchCurve.path("highlight_segments")))
@@ -134,7 +137,7 @@ public class PronunciationAttemptService {
         saveFeedbacks(attempt, user, result);
 
         // 7. 오답 기록 갱신
-        updateWrongAnswer(user, content, passed);
+        updateWrongAnswer(user, content, passed, accuracy);
 
         return attempt.getAttemptId();
     }
@@ -200,10 +203,10 @@ public class PronunciationAttemptService {
     }
 
     // 오답 기록은 회원·콘텐츠당 1건만 두고 갱신한다
-    private void updateWrongAnswer(User user, LearningContent content, boolean passed) {
+    private void updateWrongAnswer(User user, LearningContent content, boolean passed, double accuracy) {
         wrongAnswerRepository.findByUserAndLearningContent(user, content)
                 .ifPresentOrElse(
-                        wrongAnswer -> wrongAnswer.recordAttempt(passed), // 더티 체킹으로 반영
+                        wrongAnswer -> wrongAnswer.recordAttempt(passed, accuracy), // 더티 체킹으로 반영
                         () -> {
                             // 처음부터 맞히면 오답 기록을 만들 필요가 없다
                             if (!passed) {
@@ -213,6 +216,7 @@ public class PronunciationAttemptService {
                                         .wrongCount(1)
                                         .isSolved(false)
                                         .lastAttemptedAt(LocalDateTime.now())
+                                        .lastAccuracy(accuracy)
                                         .build());
                             }
                         });

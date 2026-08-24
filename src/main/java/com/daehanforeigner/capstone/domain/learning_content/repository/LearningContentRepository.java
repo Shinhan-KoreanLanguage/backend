@@ -34,16 +34,26 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
             "AND (:categoryId IS NULL OR c.contentCategory.categoryId = :categoryId) " +
             "AND (:contentType IS NULL OR c.contentType = :contentType) " +
             "AND (:difficulty IS NULL OR c.difficulty = :difficulty) " +
+            // 세 상태는 서로 겹치지 않아야 필터별 개수의 합이 전체와 같아진다.
+            // 통과 이력이 우선이고, 그다음이 미해결 오답, 둘 다 아니면 미학습이다 (배지 판정과 동일한 순서)
             "AND (:status IS NULL " +
-            "     OR (:status = 'NOT_STARTED' AND NOT EXISTS " +
-            "         (SELECT 1 FROM PronunciationAttempt a " +
-            "          WHERE a.learningContent = c AND a.user.userId = :userId)) " +
-            "     OR (:status = 'WRONG' AND EXISTS " +
-            "         (SELECT 1 FROM WrongAnswer w " +
-            "          WHERE w.learningContent = c AND w.user.userId = :userId AND w.isSolved = false)) " +
             "     OR (:status = 'COMPLETED' AND EXISTS " +
             "         (SELECT 1 FROM PronunciationAttempt a " +
-            "          WHERE a.learningContent = c AND a.user.userId = :userId AND a.isPassed = true)))")
+            "          WHERE a.learningContent = c AND a.user.userId = :userId AND a.isPassed = true)) " +
+            "     OR (:status = 'WRONG' " +
+            "         AND NOT EXISTS " +
+            "         (SELECT 1 FROM PronunciationAttempt a " +
+            "          WHERE a.learningContent = c AND a.user.userId = :userId AND a.isPassed = true) " +
+            "         AND EXISTS " +
+            "         (SELECT 1 FROM WrongAnswer w " +
+            "          WHERE w.learningContent = c AND w.user.userId = :userId AND w.isSolved = false)) " +
+            "     OR (:status = 'NOT_STARTED' " +
+            "         AND NOT EXISTS " +
+            "         (SELECT 1 FROM PronunciationAttempt a " +
+            "          WHERE a.learningContent = c AND a.user.userId = :userId AND a.isPassed = true) " +
+            "         AND NOT EXISTS " +
+            "         (SELECT 1 FROM WrongAnswer w " +
+            "          WHERE w.learningContent = c AND w.user.userId = :userId AND w.isSolved = false)))")
     Page<LearningContent> searchForUser(@Param("userId") Long userId,
                                         @Param("categoryType") CategoryType categoryType,
                                         @Param("categoryId") Long categoryId,
