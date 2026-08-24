@@ -66,4 +66,9 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
                                         @Param("difficulty") Difficulty difficulty,
                                         @Param("status") String status,
                                         Pageable pageable);
+
+    // 카테고리별 전체 콘텐츠 수 — 학습 완료율 계산용 (분모)
+    @Query("SELECT c.contentCategory.categoryId, c.contentCategory.name, COUNT(c) " +
+            "FROM LearningContent c GROUP BY c.contentCategory.categoryId, c.contentCategory.name")
+    List<Object[]> countGroupByCategory();
 }

@@ -27,6 +27,12 @@ public interface WrongAnswerRepository extends JpaRepository<WrongAnswer, Long> 
     List<Long> findUnsolvedContentIds(@Param("userId") Long userId,
                                       @Param("contents") List<LearningContent> contents);
 
+    // 아직 해결하지 못한 오답을 틀린 횟수 많은 순으로 — 오답 통계 화면용
+    @Query("SELECT w FROM WrongAnswer w " +
+            "WHERE w.user.userId = :userId AND w.isSolved = false " +
+            "ORDER BY w.wrongCount DESC")
+    List<WrongAnswer> findUnsolvedOrderByWrongCountDesc(@Param("userId") Long userId);
+
     // 오답 노트 목록 조회.
     // 콘텐츠·카테고리를 함께 가져오지 않으면 행마다 추가 조회가 나가므로 fetch join으로 묶는다.
     // 카테고리는 nullable이라 LEFT로 걸어야 카테고리 없는 콘텐츠가 빠지지 않는다

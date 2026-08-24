@@ -60,7 +60,10 @@ public enum ErrorCode {
     // 발음 게임 관련 에러코드
     GAME_NOT_FOUND(HttpStatus.NOT_FOUND, "GAME_NOT_FOUND", "존재하지 않는 게임입니다."), // gameResultId로 게임 조회 실패
     GAME_ALREADY_FINISHED(HttpStatus.CONFLICT, "GAME_ALREADY_FINISHED", "이미 종료된 게임입니다."), // 종료된 게임에 단어를 제출하거나 다시 종료 요청한 경우
-    NO_WORDS_AVAILABLE(HttpStatus.NOT_FOUND, "NO_WORDS_AVAILABLE", "해당 카테고리에 게임으로 사용할 단어가 없습니다."); // 카테고리에 WORD 타입 콘텐츠가 없는 경우
+    NO_WORDS_AVAILABLE(HttpStatus.NOT_FOUND, "NO_WORDS_AVAILABLE", "해당 카테고리에 게임으로 사용할 단어가 없습니다."), // 카테고리에 WORD 타입 콘텐츠가 없는 경우
+
+    // 통계 관련 에러코드
+    INVALID_DATE_PARAMETER(HttpStatus.BAD_REQUEST, "INVALID_DATE_PARAMETER", "유효하지 않은 연도 또는 월입니다."); // year·month를 하나만 주었거나 달력상 존재하지 않는 월인 경우
 
     private final HttpStatus httpStatus;
     private final String code;
