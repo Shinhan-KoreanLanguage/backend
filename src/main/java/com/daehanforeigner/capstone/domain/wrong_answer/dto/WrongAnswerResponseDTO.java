@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 // 다시 연습하려면 contentId로 발음 연습 화면에 진입하면 되므로 별도 재도전 API는 두지 않는다
 @Schema(description = "오답 정리 목록 항목")
 public record WrongAnswerResponseDTO(
-        @Schema(description = "오답 기록 ID — 삭제할 때 사용합니다", example = "3")
+        @Schema(description = "오답 기록 ID", example = "3")
         Long wrongId,
 
         @Schema(description = "학습 콘텐츠 ID — 다시 연습하러 이동할 때 사용합니다", example = "10")

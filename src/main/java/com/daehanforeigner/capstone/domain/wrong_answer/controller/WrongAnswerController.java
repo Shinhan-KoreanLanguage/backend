@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/wrong-answers")
 @RequiredArgsConstructor
-@Tag(name = "오답 정리", description = "오답 노트 조회 및 정리")
+@Tag(name = "오답 정리", description = "오답 노트 목록 및 요약 조회")
 public class WrongAnswerController {
 
     private final WrongAnswerService wrongAnswerService;
