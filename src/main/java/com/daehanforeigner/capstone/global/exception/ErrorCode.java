@@ -55,7 +55,12 @@ public enum ErrorCode {
     AI_REFERENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI_REFERENCE_NOT_FOUND", "원어민 기준 발음이 등록되지 않았습니다."), // AI 서버에 원어민 발음 기준이 없는 경우
     AI_MEDIA_ANALYSIS_FAILED(HttpStatus.BAD_REQUEST, "AI_MEDIA_ANALYSIS_FAILED", "업로드한 영상·음성을 분석할 수 없습니다. 얼굴이 정면으로 보이는 영상인지 확인해주세요."), // AI 서버가 422로 거부 (얼굴 미검출 등)
     ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTEMPT_NOT_FOUND", "존재하지 않는 발음 시도입니다."), // 발음 시도 조회 실패
-    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."); // 저장된 파일을 다시 읽으려 했으나 없는 경우
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."), // 저장된 파일을 다시 읽으려 했으나 없는 경우
+
+    // 발음 게임 관련 에러코드
+    GAME_NOT_FOUND(HttpStatus.NOT_FOUND, "GAME_NOT_FOUND", "존재하지 않는 게임입니다."), // gameResultId로 게임 조회 실패
+    GAME_ALREADY_FINISHED(HttpStatus.CONFLICT, "GAME_ALREADY_FINISHED", "이미 종료된 게임입니다."), // 종료된 게임에 단어를 제출하거나 다시 종료 요청한 경우
+    NO_WORDS_AVAILABLE(HttpStatus.NOT_FOUND, "NO_WORDS_AVAILABLE", "해당 카테고리에 게임으로 사용할 단어가 없습니다."); // 카테고리에 WORD 타입 콘텐츠가 없는 경우
 
     private final HttpStatus httpStatus;
     private final String code;
