@@ -54,6 +54,10 @@ dependencies {
 	// Swagger / OpenAPI
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
 
+	// NCP Object Storage (S3 호환이라 AWS SDK를 그대로 사용한다)
+	implementation platform('software.amazon.awssdk:bom:2.31.16')
+	implementation 'software.amazon.awssdk:s3'
+
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
@@ -63,6 +67,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Server
+
 }
 
 tasks.named('test') {
