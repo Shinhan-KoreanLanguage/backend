@@ -33,11 +33,22 @@ custom:
   ai:
     base-url: ${AI_SERVER_URL:http://localhost:8000}
 
-  # 파일 저장 설정 (현재 로컬 스토리지, 추후 S3로 교체 예정)
+  # 업로드 파일은 NCP Object Storage에 저장한다 (아래 ncp.storage 참고).
+  # 아래 두 값은 앱이 직접 서빙하는 파일용으로 남겨둔다
   file:
-    upload-dir: ${FILE_UPLOAD_DIR:uploads}                # 로컬 저장 루트 폴더 (앱 실행 위치 기준 상대경로)
-    url-prefix: ${FILE_URL_PREFIX:http://localhost:8080/images}  # 저장된 파일에 접근할 URL 앞부분
-    default-profile-image: ${DEFAULT_PROFILE_IMAGE_URL:http://localhost:8080/images/default-profile.png} # 프로필 미설정 시 기본 이미지
+    upload-dir: ${FILE_UPLOAD_DIR:uploads}                # Object Storage 전환 이전에 저장된 파일 조회용
+    # 프로필 미설정 시 기본 이미지. jar에 포함되어 앱이 직접 서빙하므로 서버 주소를 따라간다.
+    # 배포 시 APP_BASE_URL을 지정하지 않으면 프론트가 로드할 수 없는 localhost 주소가 내려간다
+    default-profile-image: ${APP_BASE_URL:http://localhost:8080}/images/default-profile.png
+
+  # NCP Object Storage (S3 호환)
+  ncp:
+    storage:
+      region: ${NCP_STORAGE_REGION:kr-standard}
+      endpoint: ${NCP_STORAGE_ENDPOINT:https://kr.object.ncloudstorage.com}
+      bucket: ${NCP_STORAGE_BUCKET}
+      access-key: ${NCP_STORAGE_ACCESS_KEY}
+      secret-key: ${NCP_STORAGE_SECRET_KEY}
 
   # JWT 설정
   jwt:
