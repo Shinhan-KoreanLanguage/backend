@@ -2,32 +2,41 @@ package com.daehanforeigner.capstone.global.storage;
 
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
-// 파일 저장 담당.
-// 지금은 로컬 폴더에 저장하지만, 추후 S3로 바꿀 때는 이 클래스 내용만 수정하면 된다.
+// 파일 저장 담당 (NCP Object Storage).
+// 저장 위치가 바뀌어도 호출하는 쪽은 그대로 쓸 수 있도록 메서드 형태는 유지한다.
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileService {
 
-    // 로컬 저장 폴더 (application.yml의 custom.file.upload-dir)
-    @Value("${custom.file.upload-dir}")
-    private String uploadDir;
+    private final S3Client s3Client;
 
-    // 저장된 파일에 접근할 URL 앞부분 (application.yml의 custom.file.url-prefix)
-    @Value("${custom.file.url-prefix}")
-    private String urlPrefix;
+    @Value("${custom.ncp.storage.bucket}")
+    private String bucket;
+
+    @Value("${custom.ncp.storage.endpoint}")
+    private String endpoint;
 
     // 허용 확장자 (이미지만)
     private static final List<String> IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png", "gif"); // 이미지 (프로필)
@@ -53,26 +62,42 @@ public class FileService {
 
     // 저장된 파일을 다시 읽어온다 (AI 분석 서버로 재전송할 때 사용).
     public Resource loadAsResource(String fileUrl) {
-        // 1. 우리가 저장한 URL이 맞는지 확인 (외부 URL·null 차단)
+        String key = extractKey(fileUrl);
+
+        try {
+            byte[] bytes = s3Client.getObject(
+                    GetObjectRequest.builder().bucket(bucket).key(key).build(),
+                    ResponseTransformer.toBytes()).asByteArray();
+
+            // AI 서버로 multipart 전송할 때 파일명이 필요하므로 함께 담아준다
+            String fileName = key.substring(key.lastIndexOf('/') + 1);
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+
+        } catch (NoSuchKeyException e) {
+            // DB에는 URL이 남았지만 버킷에서 파일이 지워진 경우
+            throw new CustomException(ErrorCode.FILE_NOT_FOUND);
+        } catch (S3Exception e) {
+            log.error("Object Storage 조회 실패 (bucket={}, key={})", bucket, key, e);
+            throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+    }
+
+    // 저장된 URL에서 버킷 내 경로(key)만 뽑아낸다.
+    // 예) https://kr.object.ncloudstorage.com/버킷명/audio/uuid.mp3 → audio/uuid.mp3
+    private String extractKey(String fileUrl) {
+        String urlPrefix = endpoint + "/" + bucket + "/";
+
+        // 우리가 저장한 URL이 맞는지 확인 (외부 URL·null 차단)
         if (fileUrl == null || !fileUrl.startsWith(urlPrefix)) {
             throw new CustomException(ErrorCode.FILE_NOT_FOUND);
         }
 
-        // 2. urlPrefix를 떼면 "/audio/uuid.mp3" 형태가 남으므로 앞의 "/"까지 제거
-        String relativePath = fileUrl.substring(urlPrefix.length()).replaceFirst("^/", "");
-
-        // 3. 저장 루트(uploadDir) 기준으로 실제 경로 조립 (normalize로 "../" 정리)
-        Path root = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Path path = root.resolve(relativePath).normalize();
-
-        // 4. 저장 루트 안의 실제 파일인지 확인
-        //    - startsWith: "../"로 루트 밖의 파일을 읽는 경로 탈출 차단
-        //    - isRegularFile: 파일이 지워졌거나 디렉터리를 가리키는 경우 방어
-        if (!path.startsWith(root) || !Files.isRegularFile(path)) {
-            throw new CustomException(ErrorCode.FILE_NOT_FOUND);
-        }
-
-        return new FileSystemResource(path);
+        return fileUrl.substring(urlPrefix.length());
     }
 
     private String save(MultipartFile file, String directory, List<String> allowedExtensions) {
@@ -87,21 +112,28 @@ public class FileService {
             throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
         }
 
-        // 3. 저장 파일명 생성 (UUID로 중복·한글파일명 문제 방지)
-        String storedFileName = UUID.randomUUID() + "." + extension.toLowerCase();
+        // 3. 저장 경로 생성 (UUID로 중복·한글파일명 문제 방지)
+        String key = directory + "/" + UUID.randomUUID() + "." + extension.toLowerCase();
 
         try {
-            // 4. 저장 폴더(uploadDir/directory) 없으면 생성
-            Path directoryPath = Paths.get(uploadDir, directory).toAbsolutePath();
-            Files.createDirectories(directoryPath);
+            // 4. 버킷에 업로드
+            //    - publicRead: 프론트가 URL로 바로 열 수 있어야 하므로 공개 읽기로 저장
+            //    - contentType: 지정하지 않으면 브라우저가 이미지·음성을 재생하지 못하고 다운로드해버린다
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(key)
+                            .contentType(file.getContentType())
+                            .acl(ObjectCannedACL.PUBLIC_READ)
+                            .build(),
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            // 5. 실제 파일 저장
-            file.transferTo(directoryPath.resolve(storedFileName).toFile());
+            // 5. 접근 URL 반환 (예: https://kr.object.ncloudstorage.com/버킷명/audio/uuid.mp3)
+            return endpoint + "/" + bucket + "/" + key;
 
-            // 6. 접근 URL 반환 (예: http://localhost:8080/images/audio/uuid.mp3)
-            return urlPrefix + "/" + directory + "/" + storedFileName;
-
-        } catch (IOException e) {
+        } catch (IOException | S3Exception e) {
+            // 원인을 남기지 않으면 버킷·권한·자격증명 중 무엇이 문제인지 알 수 없다
+            log.error("Object Storage 업로드 실패 (bucket={}, key={})", bucket, key, e);
             throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
