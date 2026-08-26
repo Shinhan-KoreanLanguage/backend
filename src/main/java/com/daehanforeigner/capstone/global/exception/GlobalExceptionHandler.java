@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import tools.jackson.databind.exc.InvalidFormatException;
+
+import java.util.Arrays;
 
 @Slf4j // log 객체 생성해서 로그를 남길 수 있도록 함
 @RestControllerAdvice // 모든 컨트롤러에서 공통으로 발생하는 예외처리를 이 곳에서 처리해 JSON 형태로 응답
@@ -42,7 +45,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RsData<Void>> handleNotReadable(HttpMessageNotReadableException e) {
         return ResponseEntity
                 .status(ErrorCode.BAD_REQUEST.getHttpStatus())
-                .body(RsData.fail(ErrorCode.BAD_REQUEST));
+                .body(RsData.fail(ErrorCode.BAD_REQUEST, resolveMessage(e)));
+    }
+
+    // 어느 필드가 잘못됐는지 알려준다.
+    // "잘못된 요청입니다."만 내려가면 프론트가 원인을 찾을 수 없다
+    private String resolveMessage(HttpMessageNotReadableException e) {
+        if (e.getCause() instanceof InvalidFormatException cause && !cause.getPath().isEmpty()) {
+            String field = cause.getPath().get(cause.getPath().size() - 1).getPropertyName();
+            Class<?> type = cause.getTargetType();
+
+            // enum이면 어떤 값을 넣어야 하는지까지 알려준다
+            if (type != null && type.isEnum()) {
+                return "%s 값이 올바르지 않습니다. 가능한 값: %s"
+                        .formatted(field, Arrays.toString(type.getEnumConstants()));
+            }
+            return "%s 값의 형식이 올바르지 않습니다.".formatted(field);
+        }
+
+        return ErrorCode.BAD_REQUEST.getMessage();
     }
 
     // 존재하지 않는 필드로 정렬을 요청한 경우 ex) ?sort=wrongcount (오타)
