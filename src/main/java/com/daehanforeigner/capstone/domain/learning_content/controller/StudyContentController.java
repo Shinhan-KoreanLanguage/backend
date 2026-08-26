@@ -39,13 +39,20 @@ public class StudyContentController {
     @Operation(
             summary = "학습 콘텐츠 목록 조회",
             description = """
-                    공부용 학습·문화 학습의 카드 목록을 조회합니다. 모든 필터는 생략 가능하며, 생략하면 전체를 조회합니다.
+                    공부용 학습·일상 회화의 카드 목록을 조회합니다. 모든 필터는 생략 가능하며, 생략하면 전체를 조회합니다.
 
-                    - `categoryType` — `BASIC`(공부용 학습) / `CULTURE`(문화 학습)
+                    - `categoryType` — `BASIC`(공부용 학습) / `CULTURE`(일상 회화)
                     - `status` — 회원 기준 학습 상태 필터
                       - `NOT_STARTED` 한 번도 시도하지 않음
                       - `WRONG` 아직 통과하지 못함
                       - `COMPLETED` 통과 이력 있음
+
+                    ### 회원 모국어에 따라 달라지는 값
+                    `meaning` · `nativePronunciation`은 **로그인한 회원의 모국어로 내려갑니다.**
+                    모국어 번역이 없으면 영어로 대체하고, 영어도 없으면 `null`입니다.
+                    카드에는 한국어 `text`와 함께 표시하면 됩니다.
+
+                    `difficulty`는 난이도 구분이 없는 콘텐츠(실생활 문장 등)면 `null`입니다.
 
                     응답의 `status`는 카드 배지에 그대로 쓰면 됩니다.
                     `answerAudioUrl`은 관리자가 발음 자료를 등록하지 않은 콘텐츠면 null이므로,
@@ -96,10 +103,16 @@ public class StudyContentController {
             description = """
                     발음 연습 화면 진입 시 호출합니다. 화면에 필요한 값이 한 번에 내려옵니다.
 
-                    - `text` — 학습할 단어·문장 (화면 중앙 큰 글씨)
+                    - `text` — 학습할 단어·문장 (한국어, 화면 중앙 큰 글씨)
                     - `standardPronunciationText` — 표준 발음 표기 (예: 사과 → \\[사과\\])
-                    - `nativePronunciation` — 모국어 발음 표기
                     - `answerAudioUrl` / `answerVideoUrl` — 원어민 음성·영상. 그대로 재생하면 됩니다
+
+                    ### 회원 모국어에 따라 달라지는 값
+                    `meaning` · `pronunciationGuide` · `nativePronunciation`은
+                    **로그인한 회원의 모국어로 내려갑니다.** 같은 콘텐츠라도 회원마다 값이 다릅니다.
+
+                    모국어 번역이 없으면 영어로 대체하며, 영어도 없으면 `null`입니다.
+                    실제로 어떤 언어가 내려갔는지는 `translationLanguage`로 확인하세요.
 
                     **`answerAudioUrl`·`answerVideoUrl`은 null일 수 있습니다.**
                     관리자가 발음 자료를 아직 등록하지 않은 콘텐츠인 경우이며,
@@ -109,12 +122,14 @@ public class StudyContentController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`"),
-            @ApiResponse(responseCode = "404", description = "`CONTENT_NOT_FOUND` 존재하지 않는 콘텐츠")
+            @ApiResponse(responseCode = "404",
+                    description = "`CONTENT_NOT_FOUND` 존재하지 않는 콘텐츠 / `USER_NOT_FOUND` 존재하지 않는 회원")
     })
     @GetMapping("/{contentId}")
     public ResponseEntity<RsData<StudyContentResponseDTO>> getStudyContent(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long userId,
             @Parameter(description = "학습 콘텐츠 ID", example = "10")
             @PathVariable("contentId") Long contentId) {
-        return ResponseEntity.ok(RsData.success(studyContentService.getStudyContent(contentId)));
+        return ResponseEntity.ok(RsData.success(studyContentService.getStudyContent(userId, contentId)));
     }
 }
