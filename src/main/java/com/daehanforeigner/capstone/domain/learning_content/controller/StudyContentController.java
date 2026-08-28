@@ -11,6 +11,8 @@ import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.rsdata.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -65,7 +67,35 @@ public class StudyContentController {
                     """
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = "application/json", examples =
+                    @ExampleObject(name = "일본어권 회원의 목록", value = """
+                            {
+                              "success": true,
+                              "data": {
+                                "content": [
+                                  {
+                                    "contentId": 36,
+                                    "categoryName": "단어 학습",
+                                    "contentType": "WORD",
+                                    "difficulty": null,
+                                    "text": "가방",
+                                    "standardPronunciationText": "[가방]",
+                                    "meaning": "かばん",
+                                    "nativePronunciation": "カバン",
+                                    "answerAudioUrl": "https://kr.object.ncloudstorage.com/버킷/audio/uuid.m4a",
+                                    "status": "NOT_STARTED"
+                                  }
+                                ],
+                                "page": 0,
+                                "size": 20,
+                                "totalElements": 1,
+                                "totalPages": 1,
+                                "hasNext": false
+                              },
+                              "error": null,
+                              "timestamp": "2026-08-29T02:30:00"
+                            }"""))),
             @ApiResponse(responseCode = "400", description = "`INVALID_SORT_PROPERTY` 정렬할 수 없는 항목"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`")
     })
@@ -120,7 +150,61 @@ public class StudyContentController {
                     """
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = "application/json", examples = {
+                            @ExampleObject(name = "영어권 회원", description = "모국어가 EN인 회원이 조회한 경우",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "contentId": 36,
+                                                "categoryName": "단어 학습",
+                                                "contentType": "WORD",
+                                                "difficulty": null,
+                                                "text": "가방",
+                                                "standardPronunciationText": "[가방]",
+                                                "translationLanguage": "EN",
+                                                "nativePronunciation": "ga-bang",
+                                                "meaning": "bag",
+                                                "exampleSentence": "가방이 무거워요.",
+                                                "pronunciationGuide": "Say 'ga' as in 'garden', then 'bang'.",
+                                                "answerAudioUrl": "https://kr.object.ncloudstorage.com/버킷/audio/uuid.m4a",
+                                                "answerVideoUrl": "https://kr.object.ncloudstorage.com/버킷/video/uuid.mp4"
+                                              },
+                                              "error": null,
+                                              "timestamp": "2026-08-29T02:30:00"
+                                            }"""),
+                            @ExampleObject(name = "일본어권 회원", description = "같은 콘텐츠를 모국어가 JP인 회원이 조회한 경우",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "contentId": 36,
+                                                "text": "가방",
+                                                "translationLanguage": "JP",
+                                                "nativePronunciation": "カバン",
+                                                "meaning": "かばん",
+                                                "pronunciationGuide": "「カ」は息を強く出さずに発音します。"
+                                              },
+                                              "error": null,
+                                              "timestamp": "2026-08-29T02:30:00"
+                                            }"""),
+                            @ExampleObject(name = "번역이 없는 경우", description = "모국어·영어 번역이 모두 없으면 null",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "data": {
+                                                "contentId": 36,
+                                                "text": "가방",
+                                                "translationLanguage": null,
+                                                "nativePronunciation": null,
+                                                "meaning": null,
+                                                "pronunciationGuide": null
+                                              },
+                                              "error": null,
+                                              "timestamp": "2026-08-29T02:30:00"
+                                            }""")
+                    })),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`"),
             @ApiResponse(responseCode = "404",
                     description = "`CONTENT_NOT_FOUND` 존재하지 않는 콘텐츠 / `USER_NOT_FOUND` 존재하지 않는 회원")
