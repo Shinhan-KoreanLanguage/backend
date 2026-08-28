@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -93,6 +94,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.EMPTY_FILE.getHttpStatus())
                 .body(RsData.fail(ErrorCode.EMPTY_FILE));
+    }
+
+    // 경로는 맞지만 지원하지 않는 메서드로 요청한 경우 ex) 조회 전용 경로에 PUT
+    // → 이게 없으면 500이 되어 서버 장애로 오해하게 된다. 실제로는 URL을 잘못 부른 것이다
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<RsData<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
+        return ResponseEntity
+                .status(ErrorCode.METHOD_NOT_ALLOWED.getHttpStatus())
+                .body(RsData.fail(ErrorCode.METHOD_NOT_ALLOWED));
     }
 
     // 매핑되지 않은 경로를 요청한 경우 ex) 오타, 아직 배포되지 않은 API 호출

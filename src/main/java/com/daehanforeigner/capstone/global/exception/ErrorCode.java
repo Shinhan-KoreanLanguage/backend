@@ -12,6 +12,7 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증되지 않은 사용자입니다."), // 토큰이 없는 상태 혹은 로그아웃 되어 있는 상태
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "권한이 없는 사용자입니다."), // 인증은 되었으나 권한이 없는 상태 ex) 일반 사용자가 관리자 페이지 접근하는 경우
     NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "요청한 리소스를 찾을 수 없습니다."), // 존재하지 않는 경로 접근
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "해당 경로에서 지원하지 않는 요청 방식입니다."), // ex) 조회 전용 경로에 PUT 요청
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."), // 예상하지 못한 서버 오류
 
     // 로컬 로그인 관련 에러코드
