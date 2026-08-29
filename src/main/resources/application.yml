@@ -31,7 +31,7 @@ custom:
   # 사용자 음성·영상이 전송되는 곳이라 팀 서버 주소를 기본값으로 두지 않는다.
   # 환경변수 미설정 시 로컬로 붙어 실패하므로, 각자 .env에 AI_SERVER_URL을 지정할 것
   ai:
-    base-url: ${AI_SERVER_URL:http://localhost:8000}
+    base-url: ${AI_SERVER_URL}
 
   # 업로드 파일은 NCP Object Storage에 저장한다 (아래 ncp.storage 참고).
   # 아래 두 값은 앱이 직접 서빙하는 파일용으로 남겨둔다
@@ -39,7 +39,7 @@ custom:
     upload-dir: ${FILE_UPLOAD_DIR:uploads}                # Object Storage 전환 이전에 저장된 파일 조회용
     # 프로필 미설정 시 기본 이미지. jar에 포함되어 앱이 직접 서빙하므로 서버 주소를 따라간다.
     # 배포 시 APP_BASE_URL을 지정하지 않으면 프론트가 로드할 수 없는 localhost 주소가 내려간다
-    default-profile-image: ${APP_BASE_URL:http://localhost:8080}/images/default-profile.png
+    default-profile-image: ${APP_BASE_URL}/images/default-profile.png
 
   # NCP Object Storage (S3 호환)
   ncp:
@@ -62,11 +62,11 @@ custom:
       google:
         client-id: ${GOOGLE_CLIENT_ID}
         client-secret: ${GOOGLE_CLIENT_SECRET}
-        redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/oauth/callback/google}
+        redirect-uri: ${GOOGLE_REDIRECT_URI}
       facebook:
         client-id: ${FACEBOOK_CLIENT_ID}
         client-secret: ${FACEBOOK_CLIENT_SECRET}
-        redirect-uri: ${FACEBOOK_REDIRECT_URI:http://localhost:3000/oauth/callback/facebook}
+        redirect-uri: ${FACEBOOK_REDIRECT_URI}
 
 # Swagger 설정
 springdoc:
