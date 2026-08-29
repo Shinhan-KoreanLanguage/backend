@@ -12,6 +12,7 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "인증되지 않은 사용자입니다."), // 토큰이 없는 상태 혹은 로그아웃 되어 있는 상태
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "권한이 없는 사용자입니다."), // 인증은 되었으나 권한이 없는 상태 ex) 일반 사용자가 관리자 페이지 접근하는 경우
     NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "요청한 리소스를 찾을 수 없습니다."), // 존재하지 않는 경로 접근
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "해당 경로에서 지원하지 않는 요청 방식입니다."), // ex) 조회 전용 경로에 PUT 요청
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."), // 예상하지 못한 서버 오류
 
     // 로컬 로그인 관련 에러코드
@@ -53,11 +54,12 @@ public enum ErrorCode {
     CONTENT_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "CONTENT_IDS_REQUIRED", "삭제할 학습 콘텐츠를 선택해주세요."), // 학습 콘텐츠 일괄 삭제 시 아무것도 선택하지 않거나 비어있을 때 삭제 요청을 시도한 경우
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."), // 학습 카테고리 조회 실패
     MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."), // 콘텐츠 등록 시 미디어 누락
+    DUPLICATE_TRANSLATION_LANGUAGE(HttpStatus.BAD_REQUEST, "DUPLICATE_TRANSLATION_LANGUAGE", "같은 언어의 번역을 두 번 등록할 수 없습니다."), // 번역 목록에 같은 language가 중복
 
     // AI 서버 관련 에러코드
     AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI_SERVER_ERROR", "발음 분석 서버와 통신할 수 없습니다."), // 연결 실패·타임아웃·4xx/5xx 응답
     AI_REFERENCE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI_REFERENCE_NOT_FOUND", "원어민 기준 발음이 등록되지 않았습니다."), // AI 서버에 원어민 발음 기준이 없는 경우
-    AI_MEDIA_ANALYSIS_FAILED(HttpStatus.BAD_REQUEST, "AI_MEDIA_ANALYSIS_FAILED", "업로드한 영상·음성을 분석할 수 없습니다. 얼굴이 정면으로 보이는 영상인지 확인해주세요."), // AI 서버가 422로 거부 (얼굴 미검출 등)
+    AI_MEDIA_ANALYSIS_FAILED(HttpStatus.BAD_REQUEST, "AI_MEDIA_ANALYSIS_FAILED", "업로드한 영상·음성을 분석할 수 없습니다."), // AI 서버가 422로 거부 — 원인은 얼굴 미검출·파일 형식·AI 서버 내부 오류 등 다양하므로 단정하지 않고 서버 로그로 확인한다
     ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTEMPT_NOT_FOUND", "존재하지 않는 발음 시도입니다."), // 발음 시도 조회 실패
     FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다."), // 저장된 파일을 다시 읽으려 했으나 없는 경우
 

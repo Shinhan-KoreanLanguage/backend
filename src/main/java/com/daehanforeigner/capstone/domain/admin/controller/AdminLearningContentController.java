@@ -93,6 +93,23 @@ public class AdminLearningContentController {
                     음성·영상은 **둘 다 필수**입니다. 하나라도 빠지면 `MEDIA_FILE_REQUIRED`가 반환됩니다.
                     등록 시 AI 분석 서버에 원어민 기준도 함께 등록되므로 응답이 다소 걸릴 수 있습니다.
 
+                    ### 언어별 번역 (`translations`)
+                    뜻·발음 도움말·모국어 발음 표기는 **언어마다 따로 등록**합니다.
+                    회원은 자기 모국어에 해당하는 번역만 보게 되므로, 서비스 대상 언어(KR·EN·JP·CN)를
+                    모두 채워주는 것이 좋습니다. 등록하지 않은 언어의 회원에게는 영어로 대체됩니다.
+
+                    ```json
+                    "translations": [
+                      { "language": "EN", "meaning": "apple", "pronunciationGuide": "...", "nativePronunciation": "sa-gwa" },
+                      { "language": "JP", "meaning": "りんご", "pronunciationGuide": "...", "nativePronunciation": "サグァ" }
+                    ]
+                    ```
+
+                    같은 언어를 두 번 넣으면 `DUPLICATE_TRANSLATION_LANGUAGE`가 반환됩니다.
+
+                    ### 난이도 (`difficulty`)
+                    난이도 구분이 없는 콘텐츠(실생활 문장 등)는 **생략하거나 null로 보내면 됩니다.**
+
                     응답의 `data`는 생성된 콘텐츠 ID입니다.
                     """
     )
@@ -100,7 +117,7 @@ public class AdminLearningContentController {
             @ApiResponse(responseCode = "201", description = "등록 성공 — data에 콘텐츠 ID"),
             @ApiResponse(responseCode = "400",
                     description = "`MEDIA_FILE_REQUIRED` 음성·영상 누락 / `INVALID_FILE_TYPE` 허용되지 않는 확장자 / "
-                            + "입력값 검증 실패"),
+                            + "`DUPLICATE_TRANSLATION_LANGUAGE` 같은 언어 번역 중복 / 입력값 검증 실패"),
             @ApiResponse(responseCode = "401", description = "`TOKEN_EXPIRED` / `TOKEN_INVALID`"),
             @ApiResponse(responseCode = "403", description = "`FORBIDDEN` 관리자 권한 없음"),
             @ApiResponse(responseCode = "404", description = "`CATEGORY_NOT_FOUND` 존재하지 않는 카테고리"),
@@ -127,6 +144,8 @@ public class AdminLearningContentController {
 
                     - `content` 파트는 **전체 값을 모두 담아 보내야 합니다.** 보내지 않은 필드는 null로 덮어써집니다
                       (부분 수정이 아닌 전체 교체 방식)
+                    - **`translations`도 전체 교체입니다.** 기존 번역을 모두 지우고 보낸 것으로 다시 채우므로,
+                      한 언어만 고치더라도 나머지 언어를 함께 보내야 합니다
                     - `audioFile` · `videoFile`은 **선택**입니다. 보내지 않으면 기존 파일이 유지되고,
                       보낸 파일만 교체됩니다
 

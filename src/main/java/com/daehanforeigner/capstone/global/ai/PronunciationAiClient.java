@@ -2,6 +2,7 @@ package com.daehanforeigner.capstone.global.ai;
 
 import com.daehanforeigner.capstone.global.exception.CustomException;
 import com.daehanforeigner.capstone.global.exception.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.Duration;
 
 // 발음 분석 AI 서버(FastAPI)와의 통신 담당
+@Slf4j
 @Component
 public class PronunciationAiClient {
 
@@ -109,6 +111,10 @@ public class PronunciationAiClient {
 
     // AI 서버 응답 코드별로 조치가 다르므로 구체적인 에러코드로 변환
     private CustomException toCustomException(RestClientResponseException e) {
+        // AI 서버가 알려준 사유를 남긴다.
+        // 이게 없으면 "얼굴이 안 보인다"는 우리 추측만 남아 실제 원인을 찾을 수 없다
+        log.error("AI 서버 오류 (status={}): {}", e.getStatusCode(), e.getResponseBodyAsString());
+
         if (e.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
             return new CustomException(ErrorCode.AI_REFERENCE_NOT_FOUND); // 기준 미등록 → 관리자가 등록
         }

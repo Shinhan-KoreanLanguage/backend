@@ -46,13 +46,11 @@ public class UserAuthService {
                     : ErrorCode.NICKNAME_ALREADY_EXISTS);
         });
 
-        NativeLanguage nativeLanguage = parseNativeLanguage(signupRequestDTO.nativeLanguage());
-
         User user = User.builder()
                 .email(signupRequestDTO.email())
                 .password(passwordEncoder.encode(signupRequestDTO.password()))
                 .nickname(signupRequestDTO.nickname())
-                .nativeLanguage(nativeLanguage)
+                .nativeLanguage(signupRequestDTO.nativeLanguage())
                 .role(Role.USER)
                 .status(Status.ACTIVE)
                 .build();
@@ -129,11 +127,4 @@ public class UserAuthService {
     }
 
     // 모국어 문자열을 NativeLanguage enum으로 변환하는 메서드
-    private NativeLanguage parseNativeLanguage(String value) {
-        try {
-            return NativeLanguage.valueOf(value.toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-        }
-    }
 }

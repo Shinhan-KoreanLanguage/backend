@@ -1,8 +1,10 @@
 package com.daehanforeigner.capstone.domain.user.dto.register;
 
+import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "회원가입 요청")
@@ -20,8 +22,9 @@ public record SignupRequestDTO(
         @Schema(description = "닉네임", example = "홍길동")
         String nickname,
 
-        @Schema(description = "모국어 — 대소문자 구분 없이 보내도 됩니다 (kr → KR)",
+        @Schema(description = "모국어 — 대소문자 구분 없이 보내도 됩니다 (kr → KR). 중국어는 CN입니다",
                 example = "EN", allowableValues = {"KR", "EN", "JP", "CN"})
-        String nativeLanguage
+        @NotNull(message = "모국어는 필수입니다.")
+        NativeLanguage nativeLanguage
 ) {
 }

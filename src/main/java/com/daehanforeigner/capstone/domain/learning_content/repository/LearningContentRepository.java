@@ -24,9 +24,10 @@ public interface LearningContentRepository extends JpaRepository<LearningContent
             "WHERE (:categoryId IS NULL OR c.contentCategory.categoryId = :categoryId) " +
             "AND (:contentType IS NULL OR c.contentType = :contentType) " +
             "AND (:difficulty IS NULL OR c.difficulty = :difficulty) " +
+            // 발음 가이드는 번역 테이블로 옮겨졌으므로 표준 발음 표기로 검색한다
             "AND (:keyword IS NULL " +
             "     OR c.text LIKE CONCAT('%', :keyword, '%') " +
-            "     OR c.pronunciationGuide LIKE CONCAT('%', :keyword, '%'))")
+            "     OR c.standardPronunciationText LIKE CONCAT('%', :keyword, '%'))")
     Page<LearningContent> searchContents(@Param("categoryId") Long categoryId,
                                          @Param("contentType") ContentType contentType,
                                          @Param("difficulty") Difficulty difficulty,

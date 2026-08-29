@@ -4,12 +4,16 @@ import com.daehanforeigner.capstone.domain.content_category.entity.ContentCatego
 import com.daehanforeigner.capstone.domain.content_category.repository.ContentCategoryRepository;
 import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentResponseDTO;
+import com.daehanforeigner.capstone.domain.learning_content.dto.admin.TranslationRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContentTranslation;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
+import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentTranslationRepository;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
+import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import com.daehanforeigner.capstone.global.ai.PronunciationAiClient;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
@@ -23,7 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +44,8 @@ public class AdminLearningContentService {
             Set.of("contentId", "difficulty", "text", "contentType");
 
     private final LearningContentRepository learningContentRepository;
+
+    private final LearningContentTranslationRepository translationRepository;
 
     private final ContentCategoryRepository contentCategoryRepository;
 
@@ -61,8 +69,21 @@ public class AdminLearningContentService {
             pronunciationMap.put(pronunciation.getLearningContent().getContentId(), pronunciation);
         }
 
+        // 번역도 같은 이유로 한 번에 조회한다. 관리자 화면은 등록된 언어 전체를 보여준다
+        Map<Long, List<LearningContentTranslation>> translationMap = new HashMap<>();
+        for (LearningContentTranslation translation :
+                translationRepository.findAllByLearningContentInAndLanguageIn(
+                        page.getContent(), List.of(NativeLanguage.values()))) {
+            translationMap
+                    .computeIfAbsent(translation.getLearningContent().getContentId(), key -> new ArrayList<>())
+                    .add(translation);
+        }
+
         Page<LearningContentResponseDTO> dtoPage = page.map(content ->
-                LearningContentResponseDTO.from(content, pronunciationMap.get(content.getContentId())));
+                LearningContentResponseDTO.from(
+                        content,
+                        pronunciationMap.get(content.getContentId()),
+                        translationMap.getOrDefault(content.getContentId(), List.of())));
 
         return PageResponseDTO.from(dtoPage);
     }
@@ -79,6 +100,8 @@ public class AdminLearningContentService {
         }
 
         LearningContent content = learningContentRepository.save(request.toEntity(category));
+
+        saveTranslations(content, request.translations());
 
         // AI 서버 등록에 파일 URL이 필요하므로 저장 결과를 받아둔다
         StandardPronunciation pronunciation = standardPronunciationRepository.save(
@@ -100,8 +123,14 @@ public class AdminLearningContentService {
         ContentCategory category = findCategory(request.categoryId());
         LearningContent content = findContent(contentId);
 
-        content.update(category, request.contentType(), request.difficulty(), request.text(), request.meaning(),
-                request.exampleSentence(), request.pronunciationGuide(), request.standardPronunciationText(), request.nativePronunciation());
+        content.update(category, request.contentType(), request.difficulty(),
+                request.text(), request.exampleSentence(), request.standardPronunciationText());
+
+        // 수정은 전체 교체 방식이므로 번역도 지우고 다시 넣는다.
+        // flush를 하지 않으면 JPA가 INSERT를 DELETE보다 먼저 실행해 (content_id, language) 중복으로 실패한다
+        translationRepository.deleteAllByLearningContent(content);
+        translationRepository.flush();
+        saveTranslations(content, request.translations());
 
         String audioUrl = (audioFile != null && !audioFile.isEmpty())
                 ? fileService.saveAudio(audioFile, "audio") : null;
@@ -134,6 +163,7 @@ public class AdminLearningContentService {
         LearningContent content = findContent(contentId);
 
         standardPronunciationRepository.deleteByLearningContent(content);
+        translationRepository.deleteAllByLearningContent(content);
 
         learningContentRepository.delete(content);
     }
@@ -147,10 +177,34 @@ public class AdminLearningContentService {
 
         List<LearningContent> contents = learningContentRepository.findAllById(contentIds);
 
-        // 연관된 발음 자료 먼저 삭제
+        // 연관된 발음 자료·번역 먼저 삭제
         standardPronunciationRepository.deleteAllByLearningContentIn(contents);
+        translationRepository.deleteAllByLearningContentIn(contents);
 
         learningContentRepository.deleteAll(contents);
+    }
+
+    // 언어별 번역 저장. 같은 언어를 두 번 보내면 400으로 막는다 (unique 제약 위반이 500으로 새는 것을 방지)
+    private void saveTranslations(LearningContent content, List<TranslationRequestDTO> translations) {
+        if (translations == null || translations.isEmpty()) {
+            return;
+        }
+
+        Set<NativeLanguage> languages = new HashSet<>();
+
+        for (TranslationRequestDTO translation : translations) {
+            if (!languages.add(translation.language())) {
+                throw new CustomException(ErrorCode.DUPLICATE_TRANSLATION_LANGUAGE);
+            }
+
+            translationRepository.save(LearningContentTranslation.builder()
+                    .learningContent(content)
+                    .language(translation.language())
+                    .meaning(translation.meaning())
+                    .pronunciationGuide(translation.pronunciationGuide())
+                    .nativePronunciation(translation.nativePronunciation())
+                    .build());
+        }
     }
 
     // 원어민 영상·음성을 AI 서버에 등록하고, 추출된 피치 곡선을 받아 캐시한다.

@@ -35,32 +35,23 @@ public class LearningContent {
     @Column(name = "text") // 학습 텍스트
     private String text;
 
-    @Column(name = "meaning") // 의미
-    private String meaning;
-
     @Column(name = "example_sentence") // 예문
     private String exampleSentence;
 
-    @Column(name = "pronunciation_guide") // 발음 가이드
-    private String pronunciationGuide;
-
-    @Column(name = "standard_pronunciation_text") // 표준 발음 표기
+    @Column(name = "standard_pronunciation_text") // 표준 발음 표기 (한국어)
     private String standardPronunciationText;
 
-    @Column(name = "native_pronunciation") // 모국어 발음 표기
-    private String nativePronunciation;
+    // 의미·발음 가이드·모국어 발음 표기는 언어마다 달라야 하므로
+    // LearningContentTranslation으로 분리했다
 
     // 학습 콘텐츠 정보 수정 처리 (controller단에서는 putMapping으로 처리)
-    public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty, String text, String meaning,
-                       String exampleSentence, String pronunciationGuide, String standardPronunciationText, String nativePronunciation) {
+    public void update(ContentCategory contentCategory, ContentType contentType, Difficulty difficulty,
+                       String text, String exampleSentence, String standardPronunciationText) {
         this.contentCategory = contentCategory;
         this.contentType = contentType;
         this.difficulty = difficulty;
         this.text = text;
-        this.meaning = meaning;
         this.exampleSentence = exampleSentence;
-        this.pronunciationGuide = pronunciationGuide;
         this.standardPronunciationText = standardPronunciationText;
-        this.nativePronunciation = nativePronunciation;
     }
 }
