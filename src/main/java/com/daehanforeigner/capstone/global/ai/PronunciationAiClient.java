@@ -28,6 +28,8 @@ public class PronunciationAiClient {
 
     private static final String ANALYZE_URI = "/api/v1/pronunciation/analyze";
 
+    private static final String SCORE_URI = "/api/v1/pronunciation/score";
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final RestClient restClient;
@@ -89,6 +91,17 @@ public class PronunciationAiClient {
         }
 
         return OBJECT_MAPPER.readTree(postMultipart(ANALYZE_URI, body));
+    }
+
+    // 게임 채점 — 단어 하나의 정오답만 필요할 때 호출.
+    // analyze와 달리 억양·입모양 분석을 건너뛰고 경량 STT 모델을 쓰므로 훨씬 빠르다.
+    // 응답에는 final_accuracy가 담기지만 억양 곡선·음절 점수는 오지 않는다.
+    public JsonNode score(String targetText, Resource audio) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("audio", audio);
+        body.add("target_text", targetText);
+
+        return OBJECT_MAPPER.readTree(postMultipart(SCORE_URI, body));
     }
 
     private String postMultipart(String uri, MultiValueMap<String, Object> body) {

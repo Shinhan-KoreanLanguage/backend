@@ -102,7 +102,9 @@ public class GameService {
         LearningContent word = learningContentRepository.findById(wordId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONTENT_NOT_FOUND));
 
-        JsonNode result = aiClient.analyze(word.getText(), audio.getResource(), null);
+        // 게임은 정오답 판정에 final_accuracy 하나만 쓰므로, 억양 곡선까지 계산하는
+        // analyze 대신 STT만 돌리는 score를 호출한다 (응답 지연이 곧 게임 진행 불가라 속도 우선)
+        JsonNode result = aiClient.score(word.getText(), audio.getResource());
 
         Double accuracy = nullableDouble(result, "final_accuracy");
         boolean isCorrect = accuracy != null && accuracy >= ACCURACY_THRESHOLD;
