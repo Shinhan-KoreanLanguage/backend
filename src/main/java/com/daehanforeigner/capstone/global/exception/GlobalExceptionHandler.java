@@ -10,6 +10,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
@@ -85,6 +86,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.EMPTY_FILE.getHttpStatus())
                 .body(RsData.fail(ErrorCode.EMPTY_FILE));
+    }
+
+    // 업로드 파일이 서블릿 단계의 크기 제한(spring.servlet.multipart)을 넘은 경우.
+    // 이 예외는 컨트롤러에 도달하기 전에 터지므로 FileService의 용도별 검사로는 잡을 수 없다.
+    // 핸들러가 없으면 500이 되어 서버 장애로 오해하게 되므로 413으로 명확히 알려준다.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<RsData<Void>> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        return ResponseEntity
+                .status(ErrorCode.FILE_SIZE_EXCEEDED.getHttpStatus())
+                .body(RsData.fail(ErrorCode.FILE_SIZE_EXCEEDED));
     }
 
     // multipart/form-data가 필요한 요청에 본문을 아예 안 보내거나 다른 Content-Type으로 보낸 경우
