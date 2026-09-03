@@ -56,6 +56,9 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 학습 카테고리입니다."), // 학습 카테고리 조회 실패
     MEDIA_FILE_REQUIRED(HttpStatus.BAD_REQUEST, "MEDIA_FILE_REQUIRED", "음성 파일과 영상 파일을 모두 등록해주세요."), // 콘텐츠 등록 시 미디어 누락
     DUPLICATE_TRANSLATION_LANGUAGE(HttpStatus.BAD_REQUEST, "DUPLICATE_TRANSLATION_LANGUAGE", "같은 언어의 번역을 두 번 등록할 수 없습니다."), // 번역 목록에 같은 language가 중복
+    MISSING_TRANSLATION_LANGUAGE(HttpStatus.BAD_REQUEST, "MISSING_TRANSLATION_LANGUAGE", "KR · EN · JP · CN 번역을 모두 등록해주세요."), // 4개 언어 중 빠진 것이 있는 경우
+    NATIVE_PRONUNCIATION_REQUIRED(HttpStatus.BAD_REQUEST, "NATIVE_PRONUNCIATION_REQUIRED", "영어 · 일본어 · 중국어는 모국어 발음 표기가 필수입니다."), // KR 외 언어에서 nativePronunciation 누락
+    PRONUNCIATION_TEXT_REQUIRED(HttpStatus.BAD_REQUEST, "PRONUNCIATION_TEXT_REQUIRED", "한국어 표준 발음 표기와 KR 모국어 발음 표기 중 하나는 입력해주세요."), // 둘 다 비어 서로 채울 수 없는 경우
 
     // AI 서버 관련 에러코드
     AI_SERVER_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "AI_SERVER_ERROR", "발음 분석 서버와 통신할 수 없습니다."), // 연결 실패·타임아웃·4xx/5xx 응답

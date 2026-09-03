@@ -38,19 +38,27 @@ public record LearningContentRequestDTO(
         @Schema(description = "표준 발음 표기 (한국어)", example = "[사과]")
         String standardPronunciationText,
 
-        @Schema(description = "언어별 번역 목록 — 같은 언어를 두 번 넣을 수 없습니다")
+        @Schema(description = """
+                언어별 번역 목록. **KR · EN · JP · CN 네 언어를 모두 등록해야 합니다.**
+                회원 모국어에 맞춰 화면을 채우는 구조라, 하나라도 빠지면 그 국적 회원은 빈 화면을 보게 됩니다.
+                같은 언어를 두 번 넣으면 400 `DUPLICATE_TRANSLATION_LANGUAGE`,
+                빠진 언어가 있으면 400 `MISSING_TRANSLATION_LANGUAGE`가 반환됩니다.
+                """)
+        @NotNull(message = "언어별 번역은 필수입니다.")
         @Valid
         List<TranslationRequestDTO> translations
 ) {
-        // DTO를 엔티티로 변환하는 메서드
-        public LearningContent toEntity(ContentCategory contentCategory) {
+        // DTO를 엔티티로 변환하는 메서드.
+        // standardPronunciationText는 KR 번역과 서로 보완되므로(둘 중 하나만 보내도 됨)
+        // 서비스가 확정한 값을 받아서 넣는다.
+        public LearningContent toEntity(ContentCategory contentCategory, String resolvedPronunciationText) {
             return LearningContent.builder()
                     .contentCategory(contentCategory)
                     .contentType(contentType)
                     .difficulty(difficulty)
                     .text(text)
                     .exampleSentence(exampleSentence)
-                    .standardPronunciationText(standardPronunciationText)
+                    .standardPronunciationText(resolvedPronunciationText)
                     .build();
         }
 }

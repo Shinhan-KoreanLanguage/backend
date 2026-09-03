@@ -24,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -99,9 +101,12 @@ public class AdminLearningContentService {
             throw new CustomException(ErrorCode.MEDIA_FILE_REQUIRED);
         }
 
-        LearningContent content = learningContentRepository.save(request.toEntity(category));
+        validateTranslations(request.translations());
+        String pronunciationText = resolvePronunciationText(request);
 
-        saveTranslations(content, request.translations());
+        LearningContent content = learningContentRepository.save(request.toEntity(category, pronunciationText));
+
+        saveTranslations(content, request.translations(), pronunciationText);
 
         // AI 서버 등록에 파일 URL이 필요하므로 저장 결과를 받아둔다
         StandardPronunciation pronunciation = standardPronunciationRepository.save(
@@ -123,14 +128,17 @@ public class AdminLearningContentService {
         ContentCategory category = findCategory(request.categoryId());
         LearningContent content = findContent(contentId);
 
+        validateTranslations(request.translations());
+        String pronunciationText = resolvePronunciationText(request);
+
         content.update(category, request.contentType(), request.difficulty(),
-                request.text(), request.exampleSentence(), request.standardPronunciationText());
+                request.text(), request.exampleSentence(), pronunciationText);
 
         // 수정은 전체 교체 방식이므로 번역도 지우고 다시 넣는다.
         // flush를 하지 않으면 JPA가 INSERT를 DELETE보다 먼저 실행해 (content_id, language) 중복으로 실패한다
         translationRepository.deleteAllByLearningContent(content);
         translationRepository.flush();
-        saveTranslations(content, request.translations());
+        saveTranslations(content, request.translations(), pronunciationText);
 
         String audioUrl = (audioFile != null && !audioFile.isEmpty())
                 ? fileService.saveAudio(audioFile, "audio") : null;
@@ -184,12 +192,9 @@ public class AdminLearningContentService {
         learningContentRepository.deleteAll(contents);
     }
 
-    // 언어별 번역 저장. 같은 언어를 두 번 보내면 400으로 막는다 (unique 제약 위반이 500으로 새는 것을 방지)
-    private void saveTranslations(LearningContent content, List<TranslationRequestDTO> translations) {
-        if (translations == null || translations.isEmpty()) {
-            return;
-        }
-
+    // 번역 목록 검증. 회원 모국어에 맞춰 화면을 채우는 구조라 네 언어가 모두 있어야
+    // 특정 국적 회원만 빈 화면을 보는 일이 없다.
+    private void validateTranslations(List<TranslationRequestDTO> translations) {
         Set<NativeLanguage> languages = new HashSet<>();
 
         for (TranslationRequestDTO translation : translations) {
@@ -197,12 +202,50 @@ public class AdminLearningContentService {
                 throw new CustomException(ErrorCode.DUPLICATE_TRANSLATION_LANGUAGE);
             }
 
+            // 모국어 발음 표기는 KR만 생략할 수 있다.
+            // KR은 한국어 표준 발음 표기와 같은 정보이므로 서로 채워 넣을 수 있기 때문이다.
+            if (translation.language() != NativeLanguage.KR && !StringUtils.hasText(translation.nativePronunciation())) {
+                throw new CustomException(ErrorCode.NATIVE_PRONUNCIATION_REQUIRED);
+            }
+        }
+
+        if (!languages.containsAll(EnumSet.allOf(NativeLanguage.class))) {
+            throw new CustomException(ErrorCode.MISSING_TRANSLATION_LANGUAGE);
+        }
+    }
+
+    // 한국어 표준 발음 표기를 확정한다.
+    // 표준 발음 표기(예: [사꽈])와 KR 모국어 발음 표기는 같은 정보라, 관리자가 둘 중 하나만
+    // 입력해도 되도록 서로 채워준다. 둘 다 비면 채울 근거가 없으므로 400으로 막는다.
+    private String resolvePronunciationText(LearningContentRequestDTO request) {
+        if (StringUtils.hasText(request.standardPronunciationText())) {
+            return request.standardPronunciationText();
+        }
+
+        String fromKorean = request.translations().stream()
+                .filter(translation -> translation.language() == NativeLanguage.KR)
+                .map(TranslationRequestDTO::nativePronunciation)
+                .filter(StringUtils::hasText)
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.PRONUNCIATION_TEXT_REQUIRED));
+
+        return fromKorean;
+    }
+
+    // 언어별 번역 저장. KR의 모국어 발음 표기가 비어 있으면 확정된 표준 발음 표기로 채운다
+    private void saveTranslations(LearningContent content, List<TranslationRequestDTO> translations,
+                                  String resolvedPronunciationText) {
+        for (TranslationRequestDTO translation : translations) {
+            String nativePronunciation = StringUtils.hasText(translation.nativePronunciation())
+                    ? translation.nativePronunciation()
+                    : resolvedPronunciationText;
+
             translationRepository.save(LearningContentTranslation.builder()
                     .learningContent(content)
                     .language(translation.language())
                     .meaning(translation.meaning())
                     .pronunciationGuide(translation.pronunciationGuide())
-                    .nativePronunciation(translation.nativePronunciation())
+                    .nativePronunciation(nativePronunciation)
                     .build());
         }
     }
