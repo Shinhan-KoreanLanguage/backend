@@ -2,6 +2,10 @@ package com.daehanforeigner.capstone.domain.wrong_answer.service;
 
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContentTranslation;
+import com.daehanforeigner.capstone.domain.learning_content.service.ContentTranslationResolver;
+import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import com.daehanforeigner.capstone.domain.wrong_answer.dto.WrongAnswerResponseDTO;
 import com.daehanforeigner.capstone.domain.wrong_answer.dto.WrongAnswerSummaryResponseDTO;
 import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
@@ -15,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 // 오답 정리 담당.
@@ -29,6 +35,8 @@ public class WrongAnswerService {
             Set.of("lastAttemptedAt", "wrongCount", "lastAccuracy");
 
     private final WrongAnswerRepository wrongAnswerRepository;
+
+    private final ContentTranslationResolver translationResolver;
 
     // 오답 노트 목록 조회
     public PageResponseDTO<WrongAnswerResponseDTO> getWrongAnswers(
@@ -46,7 +54,17 @@ public class WrongAnswerService {
                 normalizeKeyword(keyword),
                 pageable);
 
-        return PageResponseDTO.from(page.map(WrongAnswerResponseDTO::from));
+        // 회원 모국어 번역을 일괄 조회 (한글 아래에 함께 표시할 뜻)
+        List<LearningContent> contents = page.getContent().stream()
+                .map(WrongAnswer::getLearningContent)
+                .toList();
+        NativeLanguage language = translationResolver.resolveLanguage(userId);
+        Map<Long, LearningContentTranslation> translationMap = translationResolver.resolve(contents, language);
+
+        return PageResponseDTO.from(page.map(wrongAnswer ->
+                WrongAnswerResponseDTO.from(
+                        wrongAnswer,
+                        translationMap.get(wrongAnswer.getLearningContent().getContentId()))));
     }
 
     // 오답 요약 + 정확도 분포

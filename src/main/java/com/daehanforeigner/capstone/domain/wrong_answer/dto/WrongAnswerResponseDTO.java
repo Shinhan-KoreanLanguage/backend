@@ -3,6 +3,7 @@ package com.daehanforeigner.capstone.domain.wrong_answer.dto;
 import com.daehanforeigner.capstone.domain.learning_content.entity.ContentType;
 import com.daehanforeigner.capstone.domain.learning_content.entity.Difficulty;
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContent;
+import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContentTranslation;
 import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -35,6 +36,10 @@ public record WrongAnswerResponseDTO(
         @Schema(description = "표준 발음 표기", example = "[사과]")
         String standardPronunciationText,
 
+        @Schema(description = "회원 모국어로 된 뜻 — 한글 아래에 함께 표시하세요. 번역 미등록 시 null",
+                example = "apple", nullable = true)
+        String meaning,
+
         @Schema(description = "틀린 횟수", example = "8")
         int wrongCount,
 
@@ -48,7 +53,7 @@ public record WrongAnswerResponseDTO(
         @Schema(description = "마지막으로 시도한 시각", example = "2026-08-18T16:16:13")
         LocalDateTime lastAttemptedAt
 ) {
-    public static WrongAnswerResponseDTO from(WrongAnswer wrongAnswer) {
+    public static WrongAnswerResponseDTO from(WrongAnswer wrongAnswer, LearningContentTranslation translation) {
         LearningContent content = wrongAnswer.getLearningContent();
 
         return new WrongAnswerResponseDTO(
@@ -60,6 +65,8 @@ public record WrongAnswerResponseDTO(
                 content.getDifficulty(),
                 content.getText(),
                 content.getStandardPronunciationText(),
+                // 번역이 등록되지 않은 콘텐츠일 수 있다
+                translation != null ? translation.getMeaning() : null,
                 wrongAnswer.getWrongCount(),
                 wrongAnswer.getLastAccuracy(),
                 wrongAnswer.isSolved(),

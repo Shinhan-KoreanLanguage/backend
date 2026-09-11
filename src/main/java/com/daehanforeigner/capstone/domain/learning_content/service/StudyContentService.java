@@ -9,13 +9,10 @@ import com.daehanforeigner.capstone.domain.learning_content.entity.LearningConte
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContentTranslation;
 import com.daehanforeigner.capstone.domain.learning_content.entity.StudyStatus;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
-import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentTranslationRepository;
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.repository.PronunciationAttemptRepository;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
 import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
-import com.daehanforeigner.capstone.domain.user.entity.User;
-import com.daehanforeigner.capstone.domain.user.repository.UserRepository;
 import com.daehanforeigner.capstone.domain.wrong_answer.repository.WrongAnswerRepository;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
@@ -27,7 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,12 +40,7 @@ public class StudyContentService {
     private static final Set<String> SORTABLE_PROPERTIES =
             Set.of("contentId", "difficulty", "text");
 
-    // 회원 모국어 번역이 없을 때 대신 보여줄 언어
-    private static final NativeLanguage FALLBACK_LANGUAGE = NativeLanguage.EN;
-
     private final LearningContentRepository learningContentRepository;
-
-    private final LearningContentTranslationRepository translationRepository;
 
     private final StandardPronunciationRepository standardPronunciationRepository;
 
@@ -57,7 +48,7 @@ public class StudyContentService {
 
     private final WrongAnswerRepository wrongAnswerRepository;
 
-    private final UserRepository userRepository;
+    private final ContentTranslationResolver translationResolver;
 
     // 공부용·문화 학습 목록 조회 (카드 목록 화면)
     public PageResponseDTO<StudyContentListResponseDTO> getStudyContents(
@@ -97,8 +88,8 @@ public class StudyContentService {
         }
 
         // 3. 회원 모국어 번역을 일괄 조회 (대체 언어까지 함께 가져와 한 번에 끝낸다)
-        NativeLanguage language = resolveLanguage(userId);
-        Map<Long, LearningContentTranslation> translationMap = findTranslations(contents, language);
+        NativeLanguage language = translationResolver.resolveLanguage(userId);
+        Map<Long, LearningContentTranslation> translationMap = translationResolver.resolve(contents, language);
 
         // 4. 콘텐츠별 상태를 판정해 DTO로 변환
         Page<StudyContentListResponseDTO> dtoPage = page.map(content ->
@@ -121,42 +112,10 @@ public class StudyContentService {
                 .findByLearningContent(content)
                 .orElse(null);
 
-        LearningContentTranslation translation = findTranslations(
-                List.of(content), resolveLanguage(userId)).get(contentId);
+        LearningContentTranslation translation = translationResolver.resolve(
+                List.of(content), translationResolver.resolveLanguage(userId)).get(contentId);
 
         return StudyContentResponseDTO.from(content, translation, standardPronunciation);
-    }
-
-    // 회원의 모국어. 모국어를 지정하지 않은 회원은 대체 언어로 본다
-    private NativeLanguage resolveLanguage(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        return user.getNativeLanguage() != null ? user.getNativeLanguage() : FALLBACK_LANGUAGE;
-    }
-
-    // 콘텐츠별로 보여줄 번역을 고른다.
-    // 모국어 번역이 없으면 영어로 대체하고, 그마저 없으면 담지 않는다 (DTO에서 null 처리)
-    private Map<Long, LearningContentTranslation> findTranslations(
-            List<LearningContent> contents, NativeLanguage language) {
-
-        Map<Long, LearningContentTranslation> result = new HashMap<>();
-
-        // EnumSet을 쓰는 이유: 모국어가 영어면 Set.of(EN, EN)이 되어 중복 원소 예외가 난다
-        for (LearningContentTranslation translation :
-                translationRepository.findAllByLearningContentInAndLanguageIn(
-                        contents, EnumSet.of(language, FALLBACK_LANGUAGE))) {
-
-            Long contentId = translation.getLearningContent().getContentId();
-            LearningContentTranslation selected = result.get(contentId);
-
-            // 모국어 번역이 대체 언어보다 우선한다. 조회 순서를 보장할 수 없어 매번 비교한다
-            if (selected == null || translation.getLanguage() == language) {
-                result.put(contentId, translation);
-            }
-        }
-
-        return result;
     }
 
     // 카드 배지에 표시할 학습 상태를 정한다.
