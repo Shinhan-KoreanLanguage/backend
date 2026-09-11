@@ -144,9 +144,11 @@ public class StudyContentController {
                     모국어 번역이 없으면 영어로 대체하며, 영어도 없으면 `null`입니다.
                     실제로 어떤 언어가 내려갔는지는 `translationLanguage`로 확인하세요.
 
-                    **`answerAudioUrl`·`answerVideoUrl`은 null일 수 있습니다.**
+                    **`answerAudioUrl`·`answerVideoUrl`·`nativePitchData`는 null일 수 있습니다.**
                     관리자가 발음 자료를 아직 등록하지 않은 콘텐츠인 경우이며,
-                    이때는 원어민 듣기·따라하기 버튼을 비활성화해 주세요.
+                    이때는 원어민 듣기·따라하기 버튼과 피치 그래프를 비활성화해 주세요.
+
+                    **`nativePitchData`는 JSON 문자열이므로 `JSON.parse()` 후 사용하세요.**
                     """
     )
     @ApiResponses({
@@ -169,7 +171,8 @@ public class StudyContentController {
                                                 "exampleSentence": "가방이 무거워요.",
                                                 "pronunciationGuide": "Say 'ga' as in 'garden', then 'bang'.",
                                                 "answerAudioUrl": "https://kr.object.ncloudstorage.com/버킷/audio/uuid.m4a",
-                                                "answerVideoUrl": "https://kr.object.ncloudstorage.com/버킷/video/uuid.mp4"
+                                                "answerVideoUrl": "https://kr.object.ncloudstorage.com/버킷/video/uuid.mp4",
+                                                "nativePitchData": "[{\\"time\\":0.512,\\"pitch\\":1.12}]"
                                               },
                                               "error": null,
                                               "timestamp": "2026-08-29T02:30:00"

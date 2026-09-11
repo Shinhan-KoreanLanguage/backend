@@ -53,7 +53,14 @@ public record StudyContentResponseDTO(
 
         @Schema(description = "원어민 영상 URL — 자료 미등록 시 null",
                 example = "https://kr.object.ncloudstorage.com/버킷/video/uuid.mp4")
-        String answerVideoUrl
+        String answerVideoUrl,
+
+        @Schema(description = """
+                원어민 피치 곡선 (녹음 화면 그래프용). **JSON 문자열이므로 JSON.parse() 후 사용하세요.**
+                자료 미등록 시 null입니다.
+                """,
+                example = "[{\"time\":0.512,\"pitch\":1.12}]", nullable = true)
+        String nativePitchData
 ) {
     public static StudyContentResponseDTO from(LearningContent content,
                                                LearningContentTranslation translation,
@@ -73,7 +80,8 @@ public record StudyContentResponseDTO(
                 translation != null ? translation.getPronunciationGuide() : null,
                 // 발음 자료가 아직 등록되지 않은 콘텐츠는 null일 수 있다
                 standardPronunciation != null ? standardPronunciation.getAnswerAudioUrl() : null,
-                standardPronunciation != null ? standardPronunciation.getAnswerVideoUrl() : null
+                standardPronunciation != null ? standardPronunciation.getAnswerVideoUrl() : null,
+                standardPronunciation != null ? standardPronunciation.getNativePitchData() : null
         );
     }
 }
