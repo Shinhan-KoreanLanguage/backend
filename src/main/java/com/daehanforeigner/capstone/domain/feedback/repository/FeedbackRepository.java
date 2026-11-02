@@ -10,4 +10,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
     // Attempt에 대한 Feedback 조회
     List<Feedback> findAllByAttempt(PronunciationAttempt attempt);
+
+    // 콘텐츠·시도 삭제 시 함께 지워야 할 피드백 (attempt_id가 pronunciation_attempt를 참조)
+    void deleteAllByAttemptIn(List<PronunciationAttempt> attempts);
 }

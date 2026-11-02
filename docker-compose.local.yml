@@ -1,0 +1,17 @@
+# 로컬 PC 상시 구동용 (NCP와는 별개의 독립 배포).
+# DB는 컨테이너로 새로 안 띄우고, 이 PC에 이미 떠 있는 MySQL(Windows 서비스, localhost:3306)을
+# host.docker.internal로 그대로 바라본다 - 이미 등록해둔 콘텐츠/영상 데이터를 그대로 쓰기 위함.
+# 사용: docker compose -f docker-compose.local.yml up -d
+services:
+  app:
+    image: ${DOCKER_IMAGE}
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.local
+    environment:
+      DB_URL: jdbc:mysql://host.docker.internal:3306/capstone?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      AI_SERVER_URL: http://host.docker.internal:8000
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

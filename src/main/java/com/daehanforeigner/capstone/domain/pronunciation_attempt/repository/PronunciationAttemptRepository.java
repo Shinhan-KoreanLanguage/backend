@@ -13,6 +13,10 @@ import java.util.List;
 
 public interface PronunciationAttemptRepository extends JpaRepository<PronunciationAttempt, Long> {
 
+    // 콘텐츠 삭제 시 연관된 시도 기록을 먼저 찾아야 한다 (audio_file/feedback/phoneme_score가
+    // attempt_id를 참조하므로, 그것들부터 지운 뒤에야 이 시도 자체를 지울 수 있다)
+    List<PronunciationAttempt> findAllByLearningContentIn(List<LearningContent> contents);
+
     // 목록에 나온 콘텐츠 중 통과한 적 있는 것의 ID (학습완료 배지 판정. 목록 조회 시 N + 1 문제 해결)
     @Query("SELECT DISTINCT a.learningContent.contentId FROM PronunciationAttempt a " +
             "WHERE a.user.userId = :userId AND a.learningContent IN :contents AND a.isPassed = true")

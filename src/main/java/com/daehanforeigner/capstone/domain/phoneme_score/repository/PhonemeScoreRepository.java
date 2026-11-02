@@ -13,6 +13,9 @@ public interface PhonemeScoreRepository extends JpaRepository<PhonemeScore, Long
     // 발음 시도에 대한 모든 음소 점수 조회
     List<PhonemeScore> findAllByAttempt(PronunciationAttempt attempt);
 
+    // 콘텐츠·시도 삭제 시 함께 지워야 할 음소 점수 (attempt_id가 pronunciation_attempt를 참조)
+    void deleteAllByAttemptIn(List<PronunciationAttempt> attempts);
+
     // 음소별 평균 점수·시도 횟수·취약 판정 횟수 — 취약 판정 많은 순, 평균 점수 낮은 순으로 정렬
     // [phoneme, averageScore, attemptCount, weakCount]
     @Query("SELECT ps.phoneme, AVG(ps.score), COUNT(ps), " +

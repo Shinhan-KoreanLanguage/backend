@@ -1,7 +1,9 @@
 package com.daehanforeigner.capstone.domain.admin.service;
 
+import com.daehanforeigner.capstone.domain.audio_file.repository.AudioFileRepository;
 import com.daehanforeigner.capstone.domain.content_category.entity.ContentCategory;
 import com.daehanforeigner.capstone.domain.content_category.repository.ContentCategoryRepository;
+import com.daehanforeigner.capstone.domain.feedback.repository.FeedbackRepository;
 import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentRequestDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.admin.LearningContentResponseDTO;
 import com.daehanforeigner.capstone.domain.learning_content.dto.admin.TranslationRequestDTO;
@@ -11,9 +13,13 @@ import com.daehanforeigner.capstone.domain.learning_content.entity.LearningConte
 import com.daehanforeigner.capstone.domain.learning_content.entity.LearningContentTranslation;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentRepository;
 import com.daehanforeigner.capstone.domain.learning_content.repository.LearningContentTranslationRepository;
+import com.daehanforeigner.capstone.domain.phoneme_score.repository.PhonemeScoreRepository;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.PronunciationAttempt;
+import com.daehanforeigner.capstone.domain.pronunciation_attempt.repository.PronunciationAttemptRepository;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
 import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
+import com.daehanforeigner.capstone.domain.wrong_answer.repository.WrongAnswerRepository;
 import com.daehanforeigner.capstone.global.ai.PronunciationAiClient;
 import com.daehanforeigner.capstone.global.dto.PageResponseDTO;
 import com.daehanforeigner.capstone.global.exception.CustomException;
@@ -52,6 +58,16 @@ public class AdminLearningContentService {
     private final ContentCategoryRepository contentCategoryRepository;
 
     private final StandardPronunciationRepository standardPronunciationRepository;
+
+    private final WrongAnswerRepository wrongAnswerRepository;
+
+    private final PronunciationAttemptRepository pronunciationAttemptRepository;
+
+    private final AudioFileRepository audioFileRepository;
+
+    private final FeedbackRepository feedbackRepository;
+
+    private final PhonemeScoreRepository phonemeScoreRepository;
 
     private final FileService fileService;
 
@@ -168,12 +184,7 @@ public class AdminLearningContentService {
     // 단일 삭제
     @Transactional
     public void deleteContent(Long contentId) {
-        LearningContent content = findContent(contentId);
-
-        standardPronunciationRepository.deleteByLearningContent(content);
-        translationRepository.deleteAllByLearningContent(content);
-
-        learningContentRepository.delete(content);
+        deleteContents(List.of(contentId));
     }
 
     // 일괄 삭제
@@ -185,7 +196,17 @@ public class AdminLearningContentService {
 
         List<LearningContent> contents = learningContentRepository.findAllById(contentIds);
 
-        // 연관된 발음 자료·번역 먼저 삭제
+        // 삭제 순서가 중요하다 - 자식 테이블(attempt_id/content_id를 FK로 참조)부터 지워야
+        // learning_content를 지울 때 FK 제약 위반이 나지 않는다.
+        // pronunciation_attempt -> audio_file/feedback/phoneme_score (attempt_id 참조)
+        List<PronunciationAttempt> attempts = pronunciationAttemptRepository.findAllByLearningContentIn(contents);
+        audioFileRepository.deleteAllByAttemptIn(attempts);
+        feedbackRepository.deleteAllByAttemptIn(attempts);
+        phonemeScoreRepository.deleteAllByAttemptIn(attempts);
+        pronunciationAttemptRepository.deleteAll(attempts);
+
+        // wrong_answer, standard_pronunciation, 번역도 content_id를 참조하므로 먼저 삭제
+        wrongAnswerRepository.deleteAllByLearningContentIn(contents);
         standardPronunciationRepository.deleteAllByLearningContentIn(contents);
         translationRepository.deleteAllByLearningContentIn(contents);
 

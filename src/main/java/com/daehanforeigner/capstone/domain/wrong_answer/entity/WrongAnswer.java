@@ -47,7 +47,10 @@ public class WrongAnswer extends GlobalEntity {
     @Column(name = "last_accuracy") // 마지막 시도 정확도
     private Double lastAccuracy;
 
-    // 재시도 결과 반영 — 틀리면 횟수를 올리고, 맞히면 해결 처리
+    // 재시도 결과 반영 — 틀리면 횟수를 올리고, 맞히면 해결 처리.
+    // 한 번이라도 합격하면 isSolved는 계속 true로 유지한다 — 나중에 다시 틀려도 false로
+    // 되돌리지 않는다. 되돌리면 같은 콘텐츠가 완료 집계와 재학습 필요 집계에 동시에
+    // 잡혀 학습 통계 화면의 합계가 어긋난다("완료"는 통과 이력 기준 영구 집계라서).
     public void recordAttempt(boolean passed, double accuracy) {
         this.lastAttemptedAt = LocalDateTime.now();
         this.lastAccuracy = accuracy;
@@ -56,7 +59,6 @@ public class WrongAnswer extends GlobalEntity {
             this.isSolved = true;
         } else {
             this.wrongCount++;
-            this.isSolved = false;
         }
     }
 }

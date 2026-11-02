@@ -18,6 +18,10 @@ import java.util.Optional;
 
 public interface WrongAnswerRepository extends JpaRepository<WrongAnswer, Long> {
 
+    // 콘텐츠 삭제 시 함께 지워야 할 오답 기록 (wrong_answer.content_id가 learning_content를
+    // 참조하므로, 콘텐츠보다 먼저 지우지 않으면 FK 제약 위반으로 삭제가 실패한다)
+    void deleteAllByLearningContentIn(List<LearningContent> contents);
+
     // 사용자와 학습 콘텐츠에 해당하는 오답 기록 조회
     Optional<WrongAnswer> findByUserAndLearningContent(User user, LearningContent learningContent);
 

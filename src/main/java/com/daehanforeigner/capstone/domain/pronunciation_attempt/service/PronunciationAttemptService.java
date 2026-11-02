@@ -17,6 +17,7 @@ import com.daehanforeigner.capstone.domain.pronunciation_attempt.entity.Pronunci
 import com.daehanforeigner.capstone.domain.pronunciation_attempt.repository.PronunciationAttemptRepository;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.entity.StandardPronunciation;
 import com.daehanforeigner.capstone.domain.standard_pronunciation.repository.StandardPronunciationRepository;
+import com.daehanforeigner.capstone.domain.user.entity.NativeLanguage;
 import com.daehanforeigner.capstone.domain.user.entity.User;
 import com.daehanforeigner.capstone.domain.user.repository.UserRepository;
 import com.daehanforeigner.capstone.domain.wrong_answer.entity.WrongAnswer;
@@ -83,12 +84,14 @@ public class PronunciationAttemptService {
                 ? fileService.saveVideo(video, "attempt/video")
                 : null;
 
-        // 2. AI 분석 — 방금 저장한 파일을 다시 읽어 전송한다.
+        // 2. AI 분석 — 요청으로 받은 원본 파일을 그대로 전송한다 (S3에 올린 걸 다시
+        //    내려받지 않는다. 특히 영상은 최대 50MB라 왕복 비용이 크고, 어차피 바로 위에서
+        //    업로드한 것과 바이트가 완전히 같으므로 재다운로드는 순수 낭비다).
         //    실패하면 예외가 던져지고 아래 저장이 전부 롤백된다
         JsonNode result = aiClient.analyze(
                 content.getText(),
-                fileService.loadAsResource(audioUrl),
-                videoUrl != null ? fileService.loadAsResource(videoUrl) : null);
+                audio.getResource(),
+                (video != null && !video.isEmpty()) ? video.getResource() : null);
 
         JsonNode pitchCurve = result.path("pitch_curve");
         boolean passed = result.path("is_correct").asBoolean(false);
@@ -170,26 +173,29 @@ public class PronunciationAttemptService {
         double stt = result.path("stt_accuracy").asDouble(0.0);
         Double pitch = nullableDouble(result, "pitch_accuracy");
         boolean lengthMismatch = result.path("pitch_curve").path("length_mismatch").asBoolean(false);
+        // 모국어를 아직 지정하지 않은 회원(예: 소셜 로그인 직후)은 영어로 대체한다.
+        // OpenAiService의 LANGUAGE_NAMES는 Map.of()라 null 키를 넣으면 NPE가 난다
+        NativeLanguage language = user.getNativeLanguage() != null ? user.getNativeLanguage() : NativeLanguage.EN;
 
         PronunciationFeedbackResult feedback = openAiService.generatePronunciationFeedback(
-                attempt.getRecognizedText(), stt, pitch, lengthMismatch, user.getNativeLanguage());
+                attempt.getRecognizedText(), stt, pitch, lengthMismatch, language);
 
-        saveFeedback(attempt, user, FeedbackType.ACCURACY,
+        saveFeedback(attempt, language, FeedbackType.ACCURACY,
                 levelOf(feedback.accuracy().rating()), feedback.accuracy().comment());
-        saveFeedback(attempt, user, FeedbackType.INTONATION,
+        saveFeedback(attempt, language, FeedbackType.INTONATION,
                 levelOf(feedback.intonation().rating()), feedback.intonation().comment());
-        saveFeedback(attempt, user, FeedbackType.LENGTH,
+        saveFeedback(attempt, language, FeedbackType.LENGTH,
                 levelOf(feedback.duration().rating()), feedback.duration().comment());
     }
 
-    private void saveFeedback(PronunciationAttempt attempt, User user,
+    private void saveFeedback(PronunciationAttempt attempt, NativeLanguage language,
                               FeedbackType type, FeedbackLevel level, String content) {
         feedbackRepository.save(Feedback.builder()
                 .attempt(attempt)
                 .feedbackType(type)
                 .level(level)
                 .content(content)
-                .language(user.getNativeLanguage())
+                .language(language)
                 .build());
     }
 

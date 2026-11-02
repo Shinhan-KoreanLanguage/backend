@@ -42,5 +42,7 @@ out/
 ### VS Code ###
 .vscode/
 
-### .env ###
+### .env (.env.local, .env.production 등 변형 전부 포함 — 시크릿 보관용) ###
 .env
+.env.*
+!.env.example

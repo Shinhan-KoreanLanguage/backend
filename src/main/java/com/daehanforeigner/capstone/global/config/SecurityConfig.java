@@ -36,7 +36,13 @@ public class SecurityConfig {
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:3000",
             "http://localhost:5173",
-            "http://localhost:8080"
+            "http://localhost:8080",
+            // 로컬 PC 상시 배포 (xujong2.iptime.org) - 백엔드는 80(내부 8080), 프론트는 3000으로 포트포워딩됨
+            "http://xujong2.iptime.org",
+            "http://xujong2.iptime.org:3000",
+            // 가비아 도메인 (yakjugo.store) - Caddy가 443에서 HTTPS 종료 후 프론트/백엔드를 같은 origin으로 프록시
+            // (iptime.org는 CAA 정책으로 공인 인증서 발급이 막혀있어 자체 소유 도메인으로 전환)
+            "https://yakjugo.store"
     );
 
     @Bean
